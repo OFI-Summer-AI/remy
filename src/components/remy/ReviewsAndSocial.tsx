@@ -5,10 +5,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Star, TrendingUp, TrendingDown, Users, MessageSquare, Calendar, ThumbsUp, Eye } from "lucide-react";
+import {
+  Star,
+  TrendingUp,
+  TrendingDown,
+  Users,
+  MessageSquare,
+  Calendar as CalendarIcon,
+  ThumbsUp,
+  Eye,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { getReviews, getSocialStats, scheduleSocialPost } from "@/lib/api";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type RecentReview = { author: string; rating: number; text: string; date: string };
 type RecentPost = { image: string; caption: string; likes: number; comments: number; date: string };
@@ -36,12 +49,13 @@ type Social = {
 };
 
 const ReviewsAndSocial: React.FC = () => {
-const { toast } = useToast();
-const [selectedReview, setSelectedReview] = React.useState<Review | null>(null);
-const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
+  const { toast } = useToast();
+  const [selectedReview, setSelectedReview] = React.useState<Review | null>(null);
+  const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
   const [schedulerOpen, setSchedulerOpen] = React.useState(false);
   const [scheduleContent, setScheduleContent] = React.useState("");
-  const [scheduleDate, setScheduleDate] = React.useState("");
+  const [scheduleDate, setScheduleDate] = React.useState<Date | undefined>();
+  const [scheduleTime, setScheduleTime] = React.useState("");
 
   // Default data for reviews
   const defaultReviews: Review[] = [
@@ -393,7 +407,7 @@ const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
                 <Card>
                   <CardContent className="p-4">
                     <div className="text-center">
-                      <Calendar className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                      <CalendarIcon className="w-8 h-8 mx-auto mb-2 text-purple-600" />
                       <div className="text-2xl font-bold">{selectedSocial.posts}</div>
                       <div className="text-sm text-muted-foreground">Posts This Month</div>
                     </div>
@@ -491,20 +505,51 @@ const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
               value={scheduleContent}
               onChange={(e) => setScheduleContent(e.target.value)}
             />
-            <Input
-              type="datetime-local"
-              value={scheduleDate}
-              onChange={(e) => setScheduleDate(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !scheduleDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {scheduleDate ? format(scheduleDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={scheduleDate}
+                    onSelect={setScheduleDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button
               onClick={async () => {
                 try {
+                  const scheduledFor = scheduleDate
+                    ? new Date(
+                        `${format(scheduleDate, "yyyy-MM-dd")}T${
+                          scheduleTime || "00:00"
+                        }`
+                      ).toISOString()
+                    : undefined;
                   await scheduleSocialPost({
                     platform: selectedSocial?.platform,
                     content: scheduleContent,
-                    scheduledFor: scheduleDate,
+                    scheduledFor,
                   });
                   toast({
                     title: "Scheduled",
@@ -512,7 +557,8 @@ const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
                   });
                   setSchedulerOpen(false);
                   setScheduleContent("");
-                  setScheduleDate("");
+                  setScheduleDate(undefined);
+                  setScheduleTime("");
                 } catch {
                   toast({ title: "Error", description: "Failed to schedule post" });
                 }
