@@ -17,7 +17,15 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { getReviews, getSocialStats, scheduleSocialPost } from "@/lib/api";
+import {
+  getReviews,
+  getSocialStats,
+  scheduleSocialPost,
+  viewAllReviews,
+  respondToReviews,
+  viewSocialInsights,
+  manageSocialAudience,
+} from "@/lib/api";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -351,14 +359,41 @@ const ReviewsAndSocial: React.FC = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={() => {
-                  toast({ title: "Action", description: `Viewing all ${selectedReview.platform} reviews` });
-                }}>
+                <Button
+                  onClick={async () => {
+                    try {
+                      await viewAllReviews(selectedReview.platform);
+                      toast({
+                        title: "Opened",
+                        description: `Viewing all ${selectedReview.platform} reviews`,
+                      });
+                    } catch {
+                      toast({
+                        title: "Error",
+                        description: `Failed to load ${selectedReview.platform} reviews`,
+                      });
+                    }
+                  }}
+                >
                   View All Reviews
                 </Button>
-                <Button variant="outline" onClick={() => {
-                  toast({ title: "Action", description: `Responding to ${selectedReview.platform} reviews` });
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await respondToReviews(selectedReview.platform);
+                      toast({
+                        title: "Responding",
+                        description: `Responding to ${selectedReview.platform} reviews`,
+                      });
+                    } catch {
+                      toast({
+                        title: "Error",
+                        description: `Failed to respond to ${selectedReview.platform} reviews`,
+                      });
+                    }
+                  }}
+                >
                   Respond to Reviews
                 </Button>
               </div>
@@ -479,14 +514,42 @@ const ReviewsAndSocial: React.FC = () => {
                 <Button onClick={() => setSchedulerOpen(true)}>
                   Schedule Post
                 </Button>
-                <Button variant="outline" onClick={() => {
-                  toast({ title: "Action", description: `Viewing ${selectedSocial.platform} insights` });
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await viewSocialInsights(selectedSocial.platform);
+                      toast({
+                        title: "Opened",
+                        description: `Viewing ${selectedSocial.platform} insights`,
+                      });
+                    } catch {
+                      toast({
+                        title: "Error",
+                        description: `Failed to load ${selectedSocial.platform} insights`,
+                      });
+                    }
+                  }}
+                >
                   View Insights
                 </Button>
-                <Button variant="outline" onClick={() => {
-                  toast({ title: "Action", description: `Managing ${selectedSocial.platform} audience` });
-                }}>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      await manageSocialAudience(selectedSocial.platform);
+                      toast({
+                        title: "Opened",
+                        description: `Managing ${selectedSocial.platform} audience`,
+                      });
+                    } catch {
+                      toast({
+                        title: "Error",
+                        description: `Failed to manage ${selectedSocial.platform} audience`,
+                      });
+                    }
+                  }}
+                >
                   Manage Audience
                 </Button>
               </div>

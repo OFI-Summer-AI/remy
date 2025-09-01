@@ -25,3 +25,45 @@ export async function scheduleSocialPost<T>(data: T): Promise<T> {
   }
   return response.json() as Promise<T>;
 }
+
+export async function viewAllReviews<T>(platform: string): Promise<T> {
+  const response = await fetch(
+    `/api/reviews/all?platform=${encodeURIComponent(platform)}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to load all reviews");
+  }
+  return response.json() as Promise<T>;
+}
+
+export async function respondToReviews<T>(platform: string): Promise<T> {
+  const response = await fetch("/api/reviews/respond", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ platform }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to respond to reviews");
+  }
+  return response.json() as Promise<T>;
+}
+
+export async function viewSocialInsights<T>(platform: string): Promise<T> {
+  const response = await fetch(
+    `/api/social/insights?platform=${encodeURIComponent(platform)}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to load social insights");
+  }
+  return response.json() as Promise<T>;
+}
+
+export async function manageSocialAudience<T>(platform: string): Promise<T> {
+  const response = await fetch(
+    `/api/social/audience?platform=${encodeURIComponent(platform)}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to manage audience");
+  }
+  return response.json() as Promise<T>;
+}
