@@ -5,14 +5,41 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Star, TrendingUp, TrendingDown, Users, MessageSquare, Calendar, ThumbsUp, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { getReviews, getSocialStats } from "@/lib/api";
+
+type RecentReview = { author: string; rating: number; text: string; date: string };
+type RecentPost = { image: string; caption: string; likes: number; comments: number; date: string };
+
+type Review = {
+  platform: string;
+  rating: number;
+  totalReviews: number;
+  recentChange: string;
+  trend: "up" | "down";
+  color: string;
+  recentReviews: RecentReview[];
+  monthlyStats: Record<string, number>;
+};
+
+type Social = {
+  platform: string;
+  followers: string;
+  engagement: string;
+  posts: number;
+  trend: "up" | "down";
+  change: string;
+  recentPosts: RecentPost[];
+  demographics: { age1825: number; age2635: number; age3645: number; age45plus: number };
+};
 
 const ReviewsAndSocial: React.FC = () => {
   const { toast } = useToast();
-  const [selectedReview, setSelectedReview] = React.useState<any>(null);
-  const [selectedSocial, setSelectedSocial] = React.useState<any>(null);
+  const [selectedReview, setSelectedReview] = React.useState<Review | null>(null);
+  const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
 
-  // Mock data for reviews
-  const reviewsData = [
+  // Default data for reviews
+  const defaultReviews: Review[] = [
     {
       platform: "TripAdvisor",
       rating: 4.3,
@@ -57,8 +84,8 @@ const ReviewsAndSocial: React.FC = () => {
     }
   ];
 
-  // Mock data for social media
-  const socialData = [
+  // Default data for social media
+  const defaultSocial: Social[] = [
     {
       platform: "Instagram",
       followers: "12.3K",
@@ -102,6 +129,18 @@ const ReviewsAndSocial: React.FC = () => {
       demographics: { age1825: 40, age2635: 35, age3645: 20, age45plus: 5 }
     }
   ];
+
+  const { data: reviewsData = defaultReviews } = useQuery<Review[]>({
+    queryKey: ["reviews"],
+    queryFn: () => getReviews<Review[]>(),
+    initialData: defaultReviews,
+  });
+
+  const { data: socialData = defaultSocial } = useQuery<Social[]>({
+    queryKey: ["social"],
+    queryFn: () => getSocialStats<Social[]>(),
+    initialData: defaultSocial,
+  });
 
   return (
     <section aria-label="Reviews and Social Media Overview" className="space-y-6">
@@ -262,7 +301,7 @@ const ReviewsAndSocial: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Recent Reviews</h3>
                 <div className="space-y-4">
-                  {selectedReview.recentReviews?.map((review: any, index: number) => (
+                  {selectedReview.recentReviews?.map((review: RecentReview, index: number) => (
                     <Card key={index}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
@@ -369,7 +408,7 @@ const ReviewsAndSocial: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Recent Posts</h3>
                 <div className="space-y-4">
-                  {selectedSocial.recentPosts?.map((post: any, index: number) => (
+                  {selectedSocial.recentPosts?.map((post: RecentPost, index: number) => (
                     <Card key={index}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-4">
