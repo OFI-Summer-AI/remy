@@ -13,3 +13,15 @@ export async function getSocialStats<T>(): Promise<T> {
   }
   return response.json() as Promise<T>;
 }
+
+export async function scheduleSocialPost<T>(data: T): Promise<T> {
+  const response = await fetch("/api/social/schedule", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to schedule social post");
+  }
+  return response.json() as Promise<T>;
+}

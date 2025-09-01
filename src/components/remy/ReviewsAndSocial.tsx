@@ -1,12 +1,14 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Star, TrendingUp, TrendingDown, Users, MessageSquare, Calendar, ThumbsUp, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { getReviews, getSocialStats } from "@/lib/api";
+import { getReviews, getSocialStats, scheduleSocialPost } from "@/lib/api";
 
 type RecentReview = { author: string; rating: number; text: string; date: string };
 type RecentPost = { image: string; caption: string; likes: number; comments: number; date: string };
@@ -34,9 +36,12 @@ type Social = {
 };
 
 const ReviewsAndSocial: React.FC = () => {
-  const { toast } = useToast();
-  const [selectedReview, setSelectedReview] = React.useState<Review | null>(null);
-  const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
+const { toast } = useToast();
+const [selectedReview, setSelectedReview] = React.useState<Review | null>(null);
+const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
+  const [schedulerOpen, setSchedulerOpen] = React.useState(false);
+  const [scheduleContent, setScheduleContent] = React.useState("");
+  const [scheduleDate, setScheduleDate] = React.useState("");
 
   // Default data for reviews
   const defaultReviews: Review[] = [
@@ -457,9 +462,7 @@ const ReviewsAndSocial: React.FC = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={() => {
-                  toast({ title: "Action", description: `Opening ${selectedSocial.platform} scheduler` });
-                }}>
+                <Button onClick={() => setSchedulerOpen(true)}>
                   Schedule Post
                 </Button>
                 <Button variant="outline" onClick={() => {
@@ -475,6 +478,49 @@ const ReviewsAndSocial: React.FC = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={schedulerOpen} onOpenChange={setSchedulerOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Schedule {selectedSocial?.platform} Post</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Write your post..."
+              value={scheduleContent}
+              onChange={(e) => setScheduleContent(e.target.value)}
+            />
+            <Input
+              type="datetime-local"
+              value={scheduleDate}
+              onChange={(e) => setScheduleDate(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={async () => {
+                try {
+                  await scheduleSocialPost({
+                    platform: selectedSocial?.platform,
+                    content: scheduleContent,
+                    scheduledFor: scheduleDate,
+                  });
+                  toast({
+                    title: "Scheduled",
+                    description: `Post scheduled on ${selectedSocial?.platform}`,
+                  });
+                  setSchedulerOpen(false);
+                  setScheduleContent("");
+                  setScheduleDate("");
+                } catch {
+                  toast({ title: "Error", description: "Failed to schedule post" });
+                }
+              }}
+            >
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </section>
