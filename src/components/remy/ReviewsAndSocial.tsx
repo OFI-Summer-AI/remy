@@ -27,6 +27,8 @@ import {
   respondToReviews,
   viewSocialInsights,
   manageSocialAudience,
+  generateSocialDescription,
+  getTrendingHashtags,
 } from "@/lib/api";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -67,6 +69,14 @@ const ReviewsAndSocial: React.FC = () => {
   const [scheduleDate, setScheduleDate] = React.useState<Date | undefined>();
   const [scheduleTime, setScheduleTime] = React.useState("");
   const [scheduleMedia, setScheduleMedia] = React.useState<string | null>(null);
+  const [descriptionPrompt, setDescriptionPrompt] = React.useState("");
+
+  const { data: trendingHashtags = [] } = useQuery<string[]>({
+    queryKey: ["trending-hashtags"],
+    queryFn: () => getTrendingHashtags<string[]>(),
+    initialData: ["foodie", "yum", "instafood"],
+    enabled: schedulerOpen,
+  });
 
   // Default data for reviews
   const defaultReviews: Review[] = [
@@ -566,11 +576,58 @@ const ReviewsAndSocial: React.FC = () => {
             <DialogTitle>Create {selectedSocial?.platform} Post</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Textarea
-              placeholder="Write your post..."
-              value={scheduleContent}
-              onChange={(e) => setScheduleContent(e.target.value)}
-            />
+            <div className="space-y-2">
+              <Textarea
+                placeholder="Describe your post idea..."
+                value={descriptionPrompt}
+                onChange={(e) => setDescriptionPrompt(e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={async () => {
+                  try {
+                    const { description } =
+                      await generateSocialDescription<{ description: string }>({
+                        prompt: descriptionPrompt,
+                      });
+                    setScheduleContent(description);
+                  } catch {
+                    toast({
+                      title: "Error",
+                      description: "Failed to generate description",
+                    });
+                  }
+                }}
+              >
+                Generate Description
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Textarea
+                placeholder="Post description..."
+                value={scheduleContent}
+                onChange={(e) => setScheduleContent(e.target.value)}
+              />
+              <div className="flex flex-wrap gap-2">
+                {trendingHashtags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() =>
+                      setScheduleContent((prev) =>
+                        prev.includes(`#${tag}`)
+                          ? prev
+                          : `${prev}${prev ? " " : ""}#${tag}`
+                      )
+                    }
+                  >
+                    #{tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
             <div className="rounded-md border-2 border-dashed p-4 text-center">
               {scheduleMedia ? (
                 <img
@@ -613,7 +670,10 @@ const ReviewsAndSocial: React.FC = () => {
                     {scheduleDate ? format(scheduleDate, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                <PopoverContent
+                  className="w-auto p-0 z-50 bg-popover"
+                  align="start"
+                >
                   <Calendar
                     mode="single"
                     selected={scheduleDate}
@@ -638,6 +698,7 @@ const ReviewsAndSocial: React.FC = () => {
                 setScheduleDate(undefined);
                 setScheduleTime("");
                 setScheduleMedia(null);
+                setDescriptionPrompt("");
               }}
             >
               Cancel
@@ -661,6 +722,7 @@ const ReviewsAndSocial: React.FC = () => {
                     setScheduleDate(undefined);
                     setScheduleTime("");
                     setScheduleMedia(null);
+                    setDescriptionPrompt("");
                   } catch {
                     toast({ title: "Error", description: "Failed to publish post" });
                   }
@@ -693,6 +755,7 @@ const ReviewsAndSocial: React.FC = () => {
                     setScheduleDate(undefined);
                     setScheduleTime("");
                     setScheduleMedia(null);
+                    setDescriptionPrompt("");
                   } catch {
                     toast({ title: "Error", description: "Failed to schedule post" });
                   }

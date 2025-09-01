@@ -79,3 +79,25 @@ export async function manageSocialAudience<T>(platform: string): Promise<T> {
   }
   return response.json() as Promise<T>;
 }
+
+export async function generateSocialDescription<T>(data: {
+  prompt: string;
+}): Promise<T> {
+  const response = await fetch("/api/social/describe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to generate description");
+  }
+  return response.json() as Promise<T>;
+}
+
+export async function getTrendingHashtags<T>(): Promise<T> {
+  const response = await fetch("/api/social/hashtags");
+  if (!response.ok) {
+    throw new Error("Failed to fetch trending hashtags");
+  }
+  return response.json() as Promise<T>;
+}
