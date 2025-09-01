@@ -14,6 +14,7 @@ import {
   Calendar as CalendarIcon,
   ThumbsUp,
   Eye,
+  Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ import {
   getReviews,
   getSocialStats,
   scheduleSocialPost,
+  postSocialNow,
   viewAllReviews,
   respondToReviews,
   viewSocialInsights,
@@ -64,6 +66,7 @@ const ReviewsAndSocial: React.FC = () => {
   const [scheduleContent, setScheduleContent] = React.useState("");
   const [scheduleDate, setScheduleDate] = React.useState<Date | undefined>();
   const [scheduleTime, setScheduleTime] = React.useState("");
+  const [scheduleMedia, setScheduleMedia] = React.useState<string | null>(null);
 
   // Default data for reviews
   const defaultReviews: Review[] = [
@@ -560,7 +563,7 @@ const ReviewsAndSocial: React.FC = () => {
       <Dialog open={schedulerOpen} onOpenChange={setSchedulerOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Schedule {selectedSocial?.platform} Post</DialogTitle>
+            <DialogTitle>Create {selectedSocial?.platform} Post</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Textarea
@@ -568,6 +571,34 @@ const ReviewsAndSocial: React.FC = () => {
               value={scheduleContent}
               onChange={(e) => setScheduleContent(e.target.value)}
             />
+            <div className="rounded-md border-2 border-dashed p-4 text-center">
+              {scheduleMedia ? (
+                <img
+                  src={scheduleMedia}
+                  alt="Preview"
+                  className="mx-auto max-h-40 rounded-md object-cover"
+                />
+              ) : (
+                <div className="space-y-1">
+                  <Upload className="mx-auto h-6 w-6 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Upload image</p>
+                </div>
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () =>
+                      setScheduleMedia(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="mt-2"
+              />
+            </div>
             <div className="flex gap-2">
               <Popover>
                 <PopoverTrigger asChild>
@@ -598,37 +629,78 @@ const ReviewsAndSocial: React.FC = () => {
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="sm:justify-between">
             <Button
-              onClick={async () => {
-                try {
-                  const scheduledFor = scheduleDate
-                    ? new Date(
-                        `${format(scheduleDate, "yyyy-MM-dd")}T${
-                          scheduleTime || "00:00"
-                        }`
-                      ).toISOString()
-                    : undefined;
-                  await scheduleSocialPost({
-                    platform: selectedSocial?.platform,
-                    content: scheduleContent,
-                    scheduledFor,
-                  });
-                  toast({
-                    title: "Scheduled",
-                    description: `Post scheduled on ${selectedSocial?.platform}`,
-                  });
-                  setSchedulerOpen(false);
-                  setScheduleContent("");
-                  setScheduleDate(undefined);
-                  setScheduleTime("");
-                } catch {
-                  toast({ title: "Error", description: "Failed to schedule post" });
-                }
+              variant="outline"
+              onClick={() => {
+                setSchedulerOpen(false);
+                setScheduleContent("");
+                setScheduleDate(undefined);
+                setScheduleTime("");
+                setScheduleMedia(null);
               }}
             >
-              Save
+              Cancel
             </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  try {
+                    await postSocialNow({
+                      platform: selectedSocial?.platform,
+                      content: scheduleContent,
+                      media: scheduleMedia,
+                    });
+                    toast({
+                      title: "Posted",
+                      description: `Post published on ${selectedSocial?.platform}`,
+                    });
+                    setSchedulerOpen(false);
+                    setScheduleContent("");
+                    setScheduleDate(undefined);
+                    setScheduleTime("");
+                    setScheduleMedia(null);
+                  } catch {
+                    toast({ title: "Error", description: "Failed to publish post" });
+                  }
+                }}
+              >
+                Post Now
+              </Button>
+              <Button
+                onClick={async () => {
+                  try {
+                    const scheduledFor = scheduleDate
+                      ? new Date(
+                          `${format(scheduleDate, "yyyy-MM-dd")}T${
+                            scheduleTime || "00:00"
+                          }`
+                        ).toISOString()
+                      : undefined;
+                    await scheduleSocialPost({
+                      platform: selectedSocial?.platform,
+                      content: scheduleContent,
+                      scheduledFor,
+                      media: scheduleMedia,
+                    });
+                    toast({
+                      title: "Scheduled",
+                      description: `Post scheduled on ${selectedSocial?.platform}`,
+                    });
+                    setSchedulerOpen(false);
+                    setScheduleContent("");
+                    setScheduleDate(undefined);
+                    setScheduleTime("");
+                    setScheduleMedia(null);
+                  } catch {
+                    toast({ title: "Error", description: "Failed to schedule post" });
+                  }
+                }}
+              >
+                Schedule Post
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
