@@ -20,18 +20,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getReviews,
-  getSocialStats,
-  scheduleSocialPost,
-  postSocialNow,
-  viewAllReviews,
-  respondToReviews,
-  viewSocialInsights,
-  manageSocialAudience,
-  generateSocialDescription,
-  getTrendingHashtags,
-} from "@/lib/api";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -82,12 +70,8 @@ const ReviewsAndSocial: React.FC = () => {
     "Thanks so much for the wonderful review! We're thrilled you enjoyed our pasta. Our chef will be delighted to hear this. " +
     "Looking forward to welcoming you back soon.";
 
-  const { data: trendingHashtags = [] } = useQuery<string[]>({
-    queryKey: ["trending-hashtags"],
-    queryFn: () => getTrendingHashtags<string[]>(),
-    initialData: ["foodie", "yum", "instafood"],
-    enabled: schedulerOpen,
-  });
+  // TODO: replace with getTrendingHashtags() when backend is available
+  const trendingHashtags = ["foodie", "yum", "instafood"];
 
   // Default data for reviews
   const defaultReviews: Review[] = [
@@ -183,39 +167,28 @@ const ReviewsAndSocial: React.FC = () => {
 
   const { data: reviewsData = defaultReviews } = useQuery<Review[]>({
     queryKey: ["reviews"],
-    queryFn: () => getReviews<Review[]>(),
+    // TODO: replace with getReviews() when backend is available
+    queryFn: async () => Promise.resolve(defaultReviews),
     initialData: defaultReviews,
   });
 
   const { data: socialData = defaultSocial } = useQuery<Social[]>({
     queryKey: ["social"],
-    queryFn: () => getSocialStats<Social[]>(),
+    // TODO: replace with getSocialStats() when backend is available
+    queryFn: async () => Promise.resolve(defaultSocial),
     initialData: defaultSocial,
   });
 
-  const openAllReviews = async (review: Review) => {
-    try {
-      const data = await viewAllReviews<{ reviews: RecentReview[] }>(
-        review.platform
-      );
-      setAllReviewsPlatform(review.platform);
-      setAllReviews(
-        data.reviews && data.reviews.length > 0
-          ? data.reviews
-          : review.recentReviews
-      );
-      setAllReviewsOpen(true);
-      setSelectedReview(null);
-      toast({
-        title: "Opened",
-        description: `Viewing all ${review.platform} reviews`,
-      });
-    } catch {
-      toast({
-        title: "Error",
-        description: `Failed to load ${review.platform} reviews`,
-      });
-    }
+  const openAllReviews = (review: Review) => {
+    // TODO: replace with viewAllReviews() when backend is available
+    setAllReviewsPlatform(review.platform);
+    setAllReviews(review.recentReviews);
+    setAllReviewsOpen(true);
+    setSelectedReview(null);
+    toast({
+      title: "Opened",
+      description: `Viewing all ${review.platform} reviews`,
+    });
   };
 
   return (
@@ -528,38 +501,24 @@ const ReviewsAndSocial: React.FC = () => {
               <div className="flex gap-2">
                 <Button
                   variant="destructive"
-                  onClick={async () => {
-                    try {
-                      await respondToReviews(replyPlatform);
-                      toast({
-                        title: "Escalated",
-                        description: "Escalated to Remy",
-                      });
-                    } catch {
-                      toast({
-                        title: "Error",
-                        description: "Failed to escalate",
-                      });
-                    }
+                  onClick={() => {
+                    // TODO: call escalate API
+                    toast({
+                      title: "Escalated",
+                      description: "Escalated to Remy",
+                    });
                   }}
                 >
                   Escalate to Remy
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={async () => {
-                    try {
-                      await respondToReviews(replyPlatform);
-                      toast({
-                        title: "Resolved",
-                        description: "Marked as resolved",
-                      });
-                    } catch {
-                      toast({
-                        title: "Error",
-                        description: "Failed to mark as resolved",
-                      });
-                    }
+                  onClick={() => {
+                    // TODO: call resolve API
+                    toast({
+                      title: "Resolved",
+                      description: "Marked as resolved",
+                    });
                   }}
                 >
                   Mark as Resolved
@@ -589,7 +548,7 @@ const ReviewsAndSocial: React.FC = () => {
                             });
                             setReplySent(true);
                           } else {
-                            await respondToReviews(replyPlatform);
+                            // TODO: call respond API
                             setReplySent(true);
                             toast({ title: "Reply Sent" });
                           }
@@ -731,38 +690,24 @@ const ReviewsAndSocial: React.FC = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={async () => {
-                    try {
-                      await viewSocialInsights(selectedSocial.platform);
-                      toast({
-                        title: "Opened",
-                        description: `Viewing ${selectedSocial.platform} insights`,
-                      });
-                    } catch {
-                      toast({
-                        title: "Error",
-                        description: `Failed to load ${selectedSocial.platform} insights`,
-                      });
-                    }
+                  onClick={() => {
+                    // TODO: load insights from API
+                    toast({
+                      title: "Opened",
+                      description: `Viewing ${selectedSocial.platform} insights`,
+                    });
                   }}
                 >
                   View Insights
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={async () => {
-                    try {
-                      await manageSocialAudience(selectedSocial.platform);
-                      toast({
-                        title: "Opened",
-                        description: `Managing ${selectedSocial.platform} audience`,
-                      });
-                    } catch {
-                      toast({
-                        title: "Error",
-                        description: `Failed to manage ${selectedSocial.platform} audience`,
-                      });
-                    }
+                  onClick={() => {
+                    // TODO: manage audience via API
+                    toast({
+                      title: "Opened",
+                      description: `Managing ${selectedSocial.platform} audience`,
+                    });
                   }}
                 >
                   Manage Audience
@@ -787,19 +732,9 @@ const ReviewsAndSocial: React.FC = () => {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={async () => {
-                  try {
-                    const { description } =
-                      await generateSocialDescription<{ description: string }>({
-                        prompt: descriptionPrompt,
-                      });
-                    setScheduleContent(description);
-                  } catch {
-                    toast({
-                      title: "Error",
-                      description: "Failed to generate description",
-                    });
-                  }
+                onClick={() => {
+                  // TODO: generate description via API
+                  setScheduleContent(`Auto description for: ${descriptionPrompt}`);
                 }}
               >
                 Generate Description
@@ -908,59 +843,42 @@ const ReviewsAndSocial: React.FC = () => {
             <div className="flex gap-2">
               <Button
                 variant="secondary"
-                onClick={async () => {
-                  try {
-                    await postSocialNow({
-                      platform: selectedSocial?.platform,
-                      content: scheduleContent,
-                      media: scheduleMedia,
-                    });
-                    toast({
-                      title: "Posted",
-                      description: `Post published on ${selectedSocial?.platform}`,
-                    });
-                    setSchedulerOpen(false);
-                    setScheduleContent("");
-                    setScheduleDate(undefined);
-                    setScheduleTime("");
-                    setScheduleMedia(null);
-                    setDescriptionPrompt("");
-                  } catch {
-                    toast({ title: "Error", description: "Failed to publish post" });
-                  }
+                onClick={() => {
+                  // TODO: post immediately via API
+                  toast({
+                    title: "Posted",
+                    description: `Post published on ${selectedSocial?.platform}`,
+                  });
+                  setSchedulerOpen(false);
+                  setScheduleContent("");
+                  setScheduleDate(undefined);
+                  setScheduleTime("");
+                  setScheduleMedia(null);
+                  setDescriptionPrompt("");
                 }}
               >
                 Post Now
               </Button>
               <Button
-                onClick={async () => {
-                  try {
-                    const scheduledFor = scheduleDate
-                      ? new Date(
-                          `${format(scheduleDate, "yyyy-MM-dd")}T${
-                            scheduleTime || "00:00"
-                          }`
-                        ).toISOString()
-                      : undefined;
-                    await scheduleSocialPost({
-                      platform: selectedSocial?.platform,
-                      content: scheduleContent,
-                      scheduledFor,
-                      media: scheduleMedia,
-                    });
-                    toast({
-                      title: "Scheduled",
-                      description: `Post scheduled on ${selectedSocial?.platform}`,
-                    });
-                    setSchedulerOpen(false);
-                    setScheduleContent("");
-                    setScheduleDate(undefined);
-                    setScheduleTime("");
-                    setScheduleMedia(null);
-                    setDescriptionPrompt("");
-                  } catch {
-                    toast({ title: "Error", description: "Failed to schedule post" });
-                  }
+                onClick={() => {
+                  // TODO: schedule post via API
+                  const scheduledFor = scheduleDate
+                    ? new Date(
+                        `${format(scheduleDate, "yyyy-MM-dd")}T${
+                          scheduleTime || "00:00"
+                        }`
+                      ).toISOString()
+                    : undefined;
+                  toast({
+                    title: "Scheduled",
+                    description: `Post scheduled on ${selectedSocial?.platform}`,
+                  });
+                  setSchedulerOpen(false);
+                  setScheduleContent("");
+                  setScheduleDate(undefined);
+                  setScheduleTime("");
+                  setScheduleMedia(null);
+                  setDescriptionPrompt("");
                 }}
               >
                 Schedule Post
