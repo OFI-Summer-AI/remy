@@ -15,6 +15,8 @@ import {
   ThumbsUp,
   Eye,
   Upload,
+  ArrowLeft,
+  CheckCircle2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -70,6 +72,9 @@ const ReviewsAndSocial: React.FC = () => {
   const [scheduleTime, setScheduleTime] = React.useState("");
   const [scheduleMedia, setScheduleMedia] = React.useState<string | null>(null);
   const [descriptionPrompt, setDescriptionPrompt] = React.useState("");
+  const [respondingReview, setRespondingReview] = React.useState<RecentReview | null>(null);
+  const [replyPlatform, setReplyPlatform] = React.useState<string | null>(null);
+  const [replySent, setReplySent] = React.useState(false);
 
   const { data: trendingHashtags = [] } = useQuery<string[]>({
     queryKey: ["trending-hashtags"],
@@ -392,23 +397,149 @@ const ReviewsAndSocial: React.FC = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={async () => {
-                    try {
-                      await respondToReviews(selectedReview.platform);
-                      toast({
-                        title: "Responding",
-                        description: `Responding to ${selectedReview.platform} reviews`,
-                      });
-                    } catch {
-                      toast({
-                        title: "Error",
-                        description: `Failed to respond to ${selectedReview.platform} reviews`,
-                      });
+                  onClick={() => {
+                    if (selectedReview) {
+                      setReplyPlatform(selectedReview.platform);
+                      setRespondingReview(selectedReview.recentReviews[0]);
+                      setReplySent(false);
                     }
                   }}
                 >
                   Respond to Reviews
                 </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Review Response Modal */}
+      <Dialog
+        open={!!respondingReview}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRespondingReview(null);
+            setReplyPlatform(null);
+            setReplySent(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setRespondingReview(null);
+                  setReplyPlatform(null);
+                  setReplySent(false);
+                }}
+                className="-ml-2"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back to list
+              </Button>
+            </div>
+          </DialogHeader>
+          {respondingReview && replyPlatform && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge>{replyPlatform}</Badge>
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < respondingReview.rating
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-muted-foreground ml-auto">
+                  {respondingReview.date}
+                </span>
+              </div>
+              <div>
+                <p className="font-medium">{respondingReview.author}</p>
+                <p className="text-sm text-muted-foreground">
+                  {respondingReview.text}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    try {
+                      await respondToReviews(replyPlatform);
+                      toast({
+                        title: "Escalated",
+                        description: "Escalated to Remy",
+                      });
+                    } catch {
+                      toast({
+                        title: "Error",
+                        description: "Failed to escalate",
+                      });
+                    }
+                  }}
+                >
+                  Escalate to Remy
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    try {
+                      await respondToReviews(replyPlatform);
+                      toast({
+                        title: "Resolved",
+                        description: "Marked as resolved",
+                      });
+                    } catch {
+                      toast({
+                        title: "Error",
+                        description: "Failed to mark as resolved",
+                      });
+                    }
+                  }}
+                >
+                  Mark as Resolved
+                </Button>
+              </div>
+              <div className="rounded-md border p-4 space-y-4">
+                <div className="font-medium">Suggested Response</div>
+                <p className="text-sm">
+                  Thanks so much for the wonderful review! We're thrilled you
+                  enjoyed our pasta. Our chef will be delighted to hear this.
+                  Looking forward to welcoming you back soon.
+                </p>
+                {!replySent ? (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await respondToReviews(replyPlatform);
+                          setReplySent(true);
+                          toast({ title: "Reply Sent" });
+                        } catch {
+                          toast({
+                            title: "Error",
+                            description: "Failed to send reply",
+                          });
+                        }
+                      }}
+                    >
+                      Accept
+                    </Button>
+                    <Button variant="outline">Create new</Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Reply Sent</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
