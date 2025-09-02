@@ -75,6 +75,9 @@ const ReviewsAndSocial: React.FC = () => {
   const [respondingReview, setRespondingReview] = React.useState<RecentReview | null>(null);
   const [replyPlatform, setReplyPlatform] = React.useState<string | null>(null);
   const [replySent, setReplySent] = React.useState(false);
+  const [allReviewsOpen, setAllReviewsOpen] = React.useState(false);
+  const [allReviews, setAllReviews] = React.useState<RecentReview[]>([]);
+  const [allReviewsPlatform, setAllReviewsPlatform] = React.useState("");
   const suggestedResponse =
     "Thanks so much for the wonderful review! We're thrilled you enjoyed our pasta. Our chef will be delighted to hear this. " +
     "Looking forward to welcoming you back soon.";
@@ -189,6 +192,31 @@ const ReviewsAndSocial: React.FC = () => {
     queryFn: () => getSocialStats<Social[]>(),
     initialData: defaultSocial,
   });
+
+  const openAllReviews = async (review: Review) => {
+    try {
+      const data = await viewAllReviews<{ reviews: RecentReview[] }>(
+        review.platform
+      );
+      setAllReviewsPlatform(review.platform);
+      setAllReviews(
+        data.reviews && data.reviews.length > 0
+          ? data.reviews
+          : review.recentReviews
+      );
+      setAllReviewsOpen(true);
+      setSelectedReview(null);
+      toast({
+        title: "Opened",
+        description: `Viewing all ${review.platform} reviews`,
+      });
+    } catch {
+      toast({
+        title: "Error",
+        description: `Failed to load ${review.platform} reviews`,
+      });
+    }
+  };
 
   return (
     <section aria-label="Reviews and Social Media Overview" className="space-y-6">
@@ -380,22 +408,7 @@ const ReviewsAndSocial: React.FC = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button
-                  onClick={async () => {
-                    try {
-                      await viewAllReviews(selectedReview.platform);
-                      toast({
-                        title: "Opened",
-                        description: `Viewing all ${selectedReview.platform} reviews`,
-                      });
-                    } catch {
-                      toast({
-                        title: "Error",
-                        description: `Failed to load ${selectedReview.platform} reviews`,
-                      });
-                    }
-                  }}
-                >
+                <Button onClick={() => selectedReview && openAllReviews(selectedReview)}>
                   View All Reviews
                 </Button>
                 <Button
@@ -413,6 +426,48 @@ const ReviewsAndSocial: React.FC = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* All Reviews Modal */}
+      <Dialog open={allReviewsOpen} onOpenChange={setAllReviewsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>All {allReviewsPlatform} Reviews</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {allReviews.map((review, index) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-medium">{review.author}</span>
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3 h-3 ${
+                                i < review.rating
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {review.text}
+                      </p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {review.date}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
 

@@ -19,7 +19,14 @@ function handleRequest(req, res) {
     return sendJson(res, 200, { reviews: [] });
   }
   if (req.method === 'GET' && pathname === '/api/reviews/all') {
-    return sendJson(res, 200, { platform: query.platform, reviews: [] });
+    const sampleReviews = [
+      { author: 'Alice', rating: 5, text: 'Fantastic experience', date: '2 days ago' },
+      { author: 'Bob', rating: 4, text: 'Good service and tasty food', date: '5 days ago' },
+      { author: 'Charlie', rating: 3, text: 'Average overall', date: '1 week ago' },
+      { author: 'Dana', rating: 5, text: 'Loved every bite!', date: '2 weeks ago' },
+      { author: 'Eli', rating: 4, text: 'Great ambiance and friendly staff', date: '3 weeks ago' }
+    ];
+    return sendJson(res, 200, { platform: query.platform, reviews: sampleReviews });
   }
   if (req.method === 'POST' && pathname === '/api/reviews/respond') {
     let body = '';
