@@ -75,6 +75,9 @@ const ReviewsAndSocial: React.FC = () => {
   const [respondingReview, setRespondingReview] = React.useState<RecentReview | null>(null);
   const [replyPlatform, setReplyPlatform] = React.useState<string | null>(null);
   const [replySent, setReplySent] = React.useState(false);
+  const suggestedResponse =
+    "Thanks so much for the wonderful review! We're thrilled you enjoyed our pasta. Our chef will be delighted to hear this. " +
+    "Looking forward to welcoming you back soon.";
 
   const { data: trendingHashtags = [] } = useQuery<string[]>({
     queryKey: ["trending-hashtags"],
@@ -509,19 +512,32 @@ const ReviewsAndSocial: React.FC = () => {
               </div>
               <div className="rounded-md border p-4 space-y-4">
                 <div className="font-medium">Suggested Response</div>
-                <p className="text-sm">
-                  Thanks so much for the wonderful review! We're thrilled you
-                  enjoyed our pasta. Our chef will be delighted to hear this.
-                  Looking forward to welcoming you back soon.
-                </p>
+                <p className="text-sm">{suggestedResponse}</p>
                 {!replySent ? (
                   <div className="flex gap-2">
                     <Button
                       onClick={async () => {
                         try {
-                          await respondToReviews(replyPlatform);
-                          setReplySent(true);
-                          toast({ title: "Reply Sent" });
+                          if (replyPlatform === "TripAdvisor") {
+                            await navigator.clipboard?.writeText(
+                              suggestedResponse
+                            );
+                            window.open(
+                              "https://www.tripadvisor.com/OwnerCenter",
+                              "_blank",
+                              "noopener"
+                            );
+                            toast({
+                              title: "TripAdvisor",
+                              description:
+                                "Opened TripAdvisor. Please paste the copied response.",
+                            });
+                            setReplySent(true);
+                          } else {
+                            await respondToReviews(replyPlatform);
+                            setReplySent(true);
+                            toast({ title: "Reply Sent" });
+                          }
                         } catch {
                           toast({
                             title: "Error",
