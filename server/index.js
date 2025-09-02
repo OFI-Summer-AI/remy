@@ -10,23 +10,113 @@ function sendJson(res, status, data) {
   res.end(body);
 }
 
+const reviewPlatforms = [
+  {
+    platform: 'TripAdvisor',
+    rating: 4.3,
+    totalReviews: 284,
+    recentChange: '+12',
+    trend: 'up',
+    color: 'bg-green-500',
+    recentReviews: [
+      { author: 'Sarah M.', rating: 5, text: 'Amazing food and service! Will definitely come back.', date: '2 days ago' },
+      { author: 'John D.', rating: 4, text: 'Great atmosphere, food was good but service was a bit slow.', date: '1 week ago' },
+      { author: 'Maria L.', rating: 5, text: 'Perfect place for a romantic dinner. Highly recommended!', date: '1 week ago' }
+    ],
+    monthlyStats: { jan: 4.1, feb: 4.2, mar: 4.3 }
+  },
+  {
+    platform: 'Google Maps',
+    rating: 4.1,
+    totalReviews: 562,
+    recentChange: '+8',
+    trend: 'up',
+    color: 'bg-blue-500',
+    recentReviews: [
+      { author: 'Alex K.', rating: 4, text: 'Good food, nice location. Parking can be difficult.', date: '3 days ago' },
+      { author: 'Emma R.', rating: 5, text: 'Best pasta in town! Staff was very friendly.', date: '5 days ago' },
+      { author: 'Mike T.', rating: 3, text: 'Food was okay, but prices are a bit high for the portion size.', date: '1 week ago' }
+    ],
+    monthlyStats: { jan: 3.9, feb: 4.0, mar: 4.1 }
+  },
+  {
+    platform: 'Yelp',
+    rating: 3.9,
+    totalReviews: 156,
+    recentChange: '-3',
+    trend: 'down',
+    color: 'bg-red-500',
+    recentReviews: [
+      { author: 'Lisa P.', rating: 2, text: 'Food took too long to arrive and was cold when it did.', date: '1 day ago' },
+      { author: 'Tom W.', rating: 4, text: 'Nice ambiance, good wine selection.', date: '4 days ago' },
+      { author: 'Rachel B.', rating: 5, text: 'Excellent service and delicious food!', date: '6 days ago' }
+    ],
+    monthlyStats: { jan: 4.1, feb: 4.0, mar: 3.9 }
+  }
+];
+
+const allReviewMap = {
+  'TripAdvisor': reviewPlatforms[0].recentReviews,
+  'Google Maps': reviewPlatforms[1].recentReviews,
+  'Yelp': reviewPlatforms[2].recentReviews
+};
+
+const socialPlatforms = [
+  {
+    platform: 'Instagram',
+    followers: '12.3K',
+    engagement: '4.2%',
+    posts: 42,
+    trend: 'up',
+    change: '+2.1%',
+    recentPosts: [
+      { image: '🍝', caption: 'Fresh pasta made daily! #PastaLovers', likes: 245, comments: 18, date: '2 days ago' },
+      { image: '🍷', caption: 'Wine night specials every Friday', likes: 156, comments: 12, date: '4 days ago' },
+      { image: '👨‍🍳', caption: 'Meet our head chef Marco!', likes: 312, comments: 24, date: '1 week ago' }
+    ],
+    demographics: { age1825: 25, age2635: 35, age3645: 28, age45plus: 12 }
+  },
+  {
+    platform: 'Facebook',
+    followers: '8.7K',
+    engagement: '3.8%',
+    posts: 18,
+    trend: 'up',
+    change: '+1.4%',
+    recentPosts: [
+      { image: '🎉', caption: 'Celebrating 5 years in business!', likes: 189, comments: 34, date: '3 days ago' },
+      { image: '🥗', caption: 'New summer menu now available', likes: 123, comments: 15, date: '1 week ago' },
+      { image: '📅', caption: "Book your table for Mother's Day", likes: 98, comments: 8, date: '1 week ago' }
+    ],
+    demographics: { age1825: 15, age2635: 30, age3645: 35, age45plus: 20 }
+  },
+  {
+    platform: 'Twitter',
+    followers: '3.2K',
+    engagement: '2.1%',
+    posts: 24,
+    trend: 'down',
+    change: '-0.3%',
+    recentPosts: [
+      { image: '☕', caption: 'Perfect morning coffee to start your day right', likes: 45, comments: 6, date: '1 day ago' },
+      { image: '🍰', caption: 'Try our new dessert menu!', likes: 32, comments: 4, date: '3 days ago' },
+      { image: '🎵', caption: 'Live music every Saturday night', likes: 28, comments: 3, date: '5 days ago' }
+    ],
+    demographics: { age1825: 40, age2635: 35, age3645: 20, age45plus: 5 }
+  }
+];
+
 function handleRequest(req, res) {
   const { pathname, query } = parse(req.url, true);
   if (!pathname) {
     return sendJson(res, 404, { error: 'Not found' });
   }
   if (req.method === 'GET' && pathname === '/api/reviews') {
-    return sendJson(res, 200, { reviews: [] });
+    return sendJson(res, 200, reviewPlatforms);
   }
   if (req.method === 'GET' && pathname === '/api/reviews/all') {
-    const sampleReviews = [
-      { author: 'Alice', rating: 5, text: 'Fantastic experience', date: '2 days ago' },
-      { author: 'Bob', rating: 4, text: 'Good service and tasty food', date: '5 days ago' },
-      { author: 'Charlie', rating: 3, text: 'Average overall', date: '1 week ago' },
-      { author: 'Dana', rating: 5, text: 'Loved every bite!', date: '2 weeks ago' },
-      { author: 'Eli', rating: 4, text: 'Great ambiance and friendly staff', date: '3 weeks ago' }
-    ];
-    return sendJson(res, 200, { platform: query.platform, reviews: sampleReviews });
+    const reviews = allReviewMap[query.platform] || [];
+    return sendJson(res, 200, { platform: query.platform, reviews });
   }
   if (req.method === 'POST' && pathname === '/api/reviews/respond') {
     let body = '';
@@ -38,7 +128,7 @@ function handleRequest(req, res) {
     return;
   }
   if (req.method === 'GET' && pathname === '/api/social') {
-    return sendJson(res, 200, { followers: 0, engagement: 0, posts: 0 });
+    return sendJson(res, 200, socialPlatforms);
   }
   if (req.method === 'POST' && pathname === '/api/social/post') {
     let body = '';
