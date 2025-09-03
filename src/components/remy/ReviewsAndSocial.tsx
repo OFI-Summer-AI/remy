@@ -24,6 +24,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { viewSocialInsights } from "@/lib/api";
 
 type RecentReview = { author: string; rating: number; text: string; date: string };
 type RecentPost = { image: string; caption: string; likes: number; comments: number; date: string };
@@ -50,6 +51,17 @@ type Social = {
   demographics: { age1825: number; age2635: number; age3645: number; age45plus: number };
 };
 
+type SocialInsights = {
+  impressions: number;
+  reach: number;
+  engagement: number;
+  saved?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  clicks?: number;
+};
+
 const ReviewsAndSocial: React.FC = () => {
   const { toast } = useToast();
   const [selectedReview, setSelectedReview] = React.useState<Review | null>(null);
@@ -66,6 +78,9 @@ const ReviewsAndSocial: React.FC = () => {
   const [allReviewsOpen, setAllReviewsOpen] = React.useState(false);
   const [allReviews, setAllReviews] = React.useState<RecentReview[]>([]);
   const [allReviewsPlatform, setAllReviewsPlatform] = React.useState("");
+  const [insightsOpen, setInsightsOpen] = React.useState(false);
+  const [insightsData, setInsightsData] = React.useState<SocialInsights | null>(null);
+  const [insightsPlatform, setInsightsPlatform] = React.useState("");
   const suggestedResponse =
     "Thanks so much for the wonderful review! We're thrilled you enjoyed our pasta. Our chef will be delighted to hear this. " +
     "Looking forward to welcoming you back soon.";
@@ -189,6 +204,18 @@ const ReviewsAndSocial: React.FC = () => {
       title: "Opened",
       description: `Viewing all ${review.platform} reviews`,
     });
+  };
+
+  const openInsights = async (platform: string) => {
+    try {
+      const data = await viewSocialInsights<{ platform: string; insights: SocialInsights }>(platform);
+      setInsightsData(data.insights);
+      setInsightsPlatform(platform);
+      setInsightsOpen(true);
+      toast({ title: "Opened", description: `Viewing ${platform} insights` });
+    } catch {
+      toast({ title: "Error", description: `Failed to load ${platform} insights` });
+    }
   };
 
   return (
@@ -690,13 +717,9 @@ const ReviewsAndSocial: React.FC = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    // TODO: load insights from API
-                    toast({
-                      title: "Opened",
-                      description: `Viewing ${selectedSocial.platform} insights`,
-                    });
-                  }}
+                  onClick={() =>
+                    selectedSocial && openInsights(selectedSocial.platform)
+                  }
                 >
                   View Insights
                 </Button>
@@ -715,6 +738,25 @@ const ReviewsAndSocial: React.FC = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Social Insights Modal */}
+      <Dialog open={insightsOpen} onOpenChange={setInsightsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{insightsPlatform} Insights</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            {insightsData &&
+              Object.entries(insightsData).map(([key, value]) => (
+                <div key={key} className="text-center">
+                  <div className="text-lg font-bold">{value}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {key.replace(/_/g, " ")}
+                  </div>
+                </div>
+              ))}
+          </div>
         </DialogContent>
       </Dialog>
       <Dialog open={schedulerOpen} onOpenChange={setSchedulerOpen}>

@@ -149,7 +149,33 @@ function handleRequest(req, res) {
     return;
   }
   if (req.method === 'GET' && pathname === '/api/social/insights') {
-    return sendJson(res, 200, { platform: query.platform, insights: { impressions: 0, clicks: 0 } });
+    const platform = query.platform;
+    if (platform === 'Instagram') {
+      return sendJson(res, 200, {
+        platform,
+        insights: {
+          impressions: 1420,
+          reach: 1100,
+          engagement: 275,
+          saved: 32,
+          likes: 410,
+          comments: 58,
+        },
+      });
+    }
+    if (platform === 'Facebook') {
+      return sendJson(res, 200, {
+        platform,
+        insights: {
+          impressions: 2360,
+          reach: 1805,
+          engagement: 190,
+          shares: 47,
+          clicks: 128,
+        },
+      });
+    }
+    return sendJson(res, 200, { platform, insights: { impressions: 0, reach: 0 } });
   }
   if (req.method === 'GET' && pathname === '/api/social/audience') {
     return sendJson(res, 200, { platform: query.platform, audience: { age: 'unknown', location: 'unknown' } });

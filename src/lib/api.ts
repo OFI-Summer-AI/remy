@@ -72,14 +72,13 @@ export async function respondToReviews<T>(platform: string): Promise<T> {
 }
 
 export async function viewSocialInsights<T>(platform: string): Promise<T> {
-  // const response = await fetch(
-  //   `/api/social/insights?platform=${encodeURIComponent(platform)}`
-  // );
-  // if (!response.ok) {
-  //   throw new Error("Failed to load social insights");
-  // }
-  // return response.json() as Promise<T>;
-  return Promise.resolve({} as T);
+  const response = await fetch(
+    `/api/social/insights?platform=${encodeURIComponent(platform)}`
+  );
+  if (!response.ok) {
+    throw new Error("Failed to load social insights");
+  }
+  return response.json() as Promise<T>;
 }
 
 export async function manageSocialAudience<T>(platform: string): Promise<T> {
