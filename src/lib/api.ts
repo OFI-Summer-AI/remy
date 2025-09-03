@@ -3,6 +3,8 @@
  * TODO: Replace mock implementations with real API calls when backend is ready.
  */
 
+import { format } from "date-fns";
+
 export async function getReviews<T>(): Promise<T> {
   // const response = await fetch("/api/reviews");
   // if (!response.ok) {
@@ -80,70 +82,36 @@ export async function viewSocialInsights<T>(platform: string): Promise<T> {
   // }
   // return response.json() as Promise<T>;
 
+  const makeSeries = (base: number[]) => {
+    const today = new Date();
+    return Array.from({ length: 30 }, (_, i) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (29 - i));
+      return {
+        date: format(date, "MMM d"),
+        value: base[i % base.length],
+      };
+    });
+  };
+
+  const impressionsSeries = makeSeries([200, 240, 260, 180, 220, 160, 160]);
+  const reachSeries = makeSeries([180, 190, 210, 160, 190, 140, 130]);
+  const engagementSeries = makeSeries([45, 52, 60, 40, 55, 35, 38]);
+  const savedSeries = makeSeries([5, 4, 6, 5, 7, 3, 2]);
+  const videoSeries = makeSeries([20, 25, 30, 18, 22, 15, 10]);
+
+  const sum = (series: { value: number }[]) =>
+    series.reduce((acc, cur) => acc + cur.value, 0);
+
   const mockData: Record<string, unknown> = {
     Instagram: {
       platform: "Instagram",
       insights: {
-        impressions: {
-          total: 1420,
-          series: [
-            { date: "Mon", value: 200 },
-            { date: "Tue", value: 240 },
-            { date: "Wed", value: 260 },
-            { date: "Thu", value: 180 },
-            { date: "Fri", value: 220 },
-            { date: "Sat", value: 160 },
-            { date: "Sun", value: 160 },
-          ],
-        },
-        reach: {
-          total: 1200,
-          series: [
-            { date: "Mon", value: 180 },
-            { date: "Tue", value: 190 },
-            { date: "Wed", value: 210 },
-            { date: "Thu", value: 160 },
-            { date: "Fri", value: 190 },
-            { date: "Sat", value: 140 },
-            { date: "Sun", value: 130 },
-          ],
-        },
-        engagement: {
-          total: 325,
-          series: [
-            { date: "Mon", value: 45 },
-            { date: "Tue", value: 52 },
-            { date: "Wed", value: 60 },
-            { date: "Thu", value: 40 },
-            { date: "Fri", value: 55 },
-            { date: "Sat", value: 35 },
-            { date: "Sun", value: 38 },
-          ],
-        },
-        saved: {
-          total: 32,
-          series: [
-            { date: "Mon", value: 5 },
-            { date: "Tue", value: 4 },
-            { date: "Wed", value: 6 },
-            { date: "Thu", value: 5 },
-            { date: "Fri", value: 7 },
-            { date: "Sat", value: 3 },
-            { date: "Sun", value: 2 },
-          ],
-        },
-        video_views: {
-          total: 140,
-          series: [
-            { date: "Mon", value: 20 },
-            { date: "Tue", value: 25 },
-            { date: "Wed", value: 30 },
-            { date: "Thu", value: 18 },
-            { date: "Fri", value: 22 },
-            { date: "Sat", value: 15 },
-            { date: "Sun", value: 10 },
-          ],
-        },
+        impressions: { total: sum(impressionsSeries), series: impressionsSeries },
+        reach: { total: sum(reachSeries), series: reachSeries },
+        engagement: { total: sum(engagementSeries), series: engagementSeries },
+        saved: { total: sum(savedSeries), series: savedSeries },
+        video_views: { total: sum(videoSeries), series: videoSeries },
       },
     },
     Facebook: {

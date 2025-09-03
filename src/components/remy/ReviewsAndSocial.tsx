@@ -31,14 +31,21 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   CartesianGrid,
   XAxis,
   YAxis,
   BarChart,
   Bar,
 } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type RecentReview = { author: string; rating: number; text: string; date: string };
 type RecentPost = { image: string; caption: string; likes: number; comments: number; date: string };
@@ -95,6 +102,8 @@ const ReviewsAndSocial: React.FC = () => {
   const [insightsOpen, setInsightsOpen] = React.useState(false);
   const [insightsData, setInsightsData] = React.useState<SocialInsights | null>(null);
   const [insightsPlatform, setInsightsPlatform] = React.useState("");
+  const [insightsRange, setInsightsRange] = React.useState("7");
+  const [insightsCategory, setInsightsCategory] = React.useState("Account");
   const suggestedResponse =
     "Thanks so much for the wonderful review! We're thrilled you enjoyed our pasta. Our chef will be delighted to hear this. " +
     "Looking forward to welcoming you back soon.";
@@ -760,92 +769,130 @@ const ReviewsAndSocial: React.FC = () => {
           <DialogHeader>
             <DialogTitle>{insightsPlatform} Insights</DialogTitle>
           </DialogHeader>
+          <div className="flex justify-between mb-4">
+            <Select value={insightsCategory} onValueChange={setInsightsCategory}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Account">Account</SelectItem>
+                <SelectItem value="Content">Content</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={insightsRange} onValueChange={setInsightsRange}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="14">Last 14 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {insightsPlatform === "Instagram" && insightsData ? (
-            (() => {
-              const data = insightsData as InstagramInsights;
-              const lineData = data.impressions.series.map((pt, idx) => ({
-                date: pt.date,
-                impressions: pt.value,
-                reach: data.reach.series[idx]?.value ?? 0,
-                engagement: data.engagement.series[idx]?.value ?? 0,
-              }));
-              const barData = data.saved.series.map((pt, idx) => ({
-                date: pt.date,
-                saved: pt.value,
-                video_views: data.video_views.series[idx]?.value ?? 0,
-              }));
-              return (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(data).map(([key, metric]) => (
-                      <div key={key} className="text-center">
-                        <div className="text-lg font-bold">{metric.total}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {key.replace(/_/g, " ")}
+            insightsCategory === "Account" ? (
+              (() => {
+                const data = insightsData as InstagramInsights;
+                const range = parseInt(insightsRange, 10);
+                const filtered = Object.fromEntries(
+                  Object.entries(data).map(([key, metric]) => {
+                    const series = metric.series?.slice(-range) ?? [];
+                    const total = series.reduce((sum, p) => sum + p.value, 0);
+                    return [key, { total, series }];
+                  })
+                ) as InstagramInsights;
+                const lineData = filtered.impressions.series.map((pt, idx) => ({
+                  date: pt.date,
+                  impressions: pt.value,
+                  reach: filtered.reach.series[idx]?.value ?? 0,
+                  engagement: filtered.engagement.series[idx]?.value ?? 0,
+                }));
+                const barData = filtered.saved.series.map((pt, idx) => ({
+                  date: pt.date,
+                  saved: pt.value,
+                  video_views: filtered.video_views.series[idx]?.value ?? 0,
+                }));
+                return (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      {Object.entries(filtered).map(([key, metric]) => (
+                        <div key={key} className="text-center">
+                          <div className="text-lg font-bold">{metric.total}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {key.replace(/_/g, " ")}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                    <ChartContainer
+                      className="h-[250px]"
+                      config={{
+                        impressions: { label: "Impressions", color: "hsl(var(--chart-1))" },
+                        reach: { label: "Reach", color: "hsl(var(--chart-2))" },
+                        engagement: { label: "Engagement", color: "hsl(var(--chart-3))" },
+                      }}
+                    >
+                      <AreaChart data={lineData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Area
+                          type="monotone"
+                          dataKey="impressions"
+                          stroke="var(--color-impressions)"
+                          fill="var(--color-impressions)"
+                          fillOpacity={0.3}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="reach"
+                          stroke="var(--color-reach)"
+                          fill="var(--color-reach)"
+                          fillOpacity={0.3}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="engagement"
+                          stroke="var(--color-engagement)"
+                          fill="var(--color-engagement)"
+                          fillOpacity={0.3}
+                        />
+                      </AreaChart>
+                    </ChartContainer>
+                    <ChartContainer
+                      className="h-[250px]"
+                      config={{
+                        saved: { label: "Saved", color: "hsl(var(--chart-4))" },
+                        video_views: { label: "Video Views", color: "hsl(var(--chart-5))" },
+                      }}
+                    >
+                      <BarChart data={barData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar
+                          dataKey="saved"
+                          fill="var(--color-saved)"
+                          radius={[4, 4, 0, 0]}
+                        />
+                        <Bar
+                          dataKey="video_views"
+                          fill="var(--color-video_views)"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ChartContainer>
                   </div>
-                  <ChartContainer
-                    className="h-[250px]"
-                    config={{
-                      impressions: { label: "Impressions", color: "hsl(var(--chart-1))" },
-                      reach: { label: "Reach", color: "hsl(var(--chart-2))" },
-                      engagement: { label: "Engagement", color: "hsl(var(--chart-3))" },
-                    }}
-                  >
-                    <LineChart data={lineData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line
-                        type="monotone"
-                        dataKey="impressions"
-                        stroke="var(--color-impressions)"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="reach"
-                        stroke="var(--color-reach)"
-                        dot={false}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="engagement"
-                        stroke="var(--color-engagement)"
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ChartContainer>
-                  <ChartContainer
-                    className="h-[250px]"
-                    config={{
-                      saved: { label: "Saved", color: "hsl(var(--chart-4))" },
-                      video_views: { label: "Video Views", color: "hsl(var(--chart-5))" },
-                    }}
-                  >
-                    <BarChart data={barData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar
-                        dataKey="saved"
-                        fill="var(--color-saved)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <Bar
-                        dataKey="video_views"
-                        fill="var(--color-video_views)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                </div>
-              );
-            })()
+                );
+              })()
+            ) : (
+              <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">
+                Content insights coming soon
+              </div>
+            )
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {insightsData &&
