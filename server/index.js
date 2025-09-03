@@ -151,15 +151,38 @@ function handleRequest(req, res) {
   if (req.method === 'GET' && pathname === '/api/social/insights') {
     const platform = query.platform;
     if (platform === 'Instagram') {
+      const daily = [
+        { date: 'Mon', impressions: 200, reach: 180, engagement: 45, saved: 5, video_views: 20 },
+        { date: 'Tue', impressions: 240, reach: 190, engagement: 52, saved: 4, video_views: 25 },
+        { date: 'Wed', impressions: 260, reach: 210, engagement: 60, saved: 6, video_views: 30 },
+        { date: 'Thu', impressions: 180, reach: 160, engagement: 40, saved: 5, video_views: 18 },
+        { date: 'Fri', impressions: 220, reach: 190, engagement: 55, saved: 7, video_views: 22 },
+        { date: 'Sat', impressions: 160, reach: 140, engagement: 35, saved: 3, video_views: 15 },
+        { date: 'Sun', impressions: 160, reach: 130, engagement: 38, saved: 2, video_views: 10 },
+      ];
       return sendJson(res, 200, {
         platform,
         insights: {
-          impressions: 1420,
-          reach: 1100,
-          engagement: 275,
-          saved: 32,
-          likes: 410,
-          comments: 58,
+          impressions: {
+            total: 1420,
+            series: daily.map(d => ({ date: d.date, value: d.impressions })),
+          },
+          reach: {
+            total: 1200,
+            series: daily.map(d => ({ date: d.date, value: d.reach })),
+          },
+          engagement: {
+            total: 325,
+            series: daily.map(d => ({ date: d.date, value: d.engagement })),
+          },
+          saved: {
+            total: 32,
+            series: daily.map(d => ({ date: d.date, value: d.saved })),
+          },
+          video_views: {
+            total: 140,
+            series: daily.map(d => ({ date: d.date, value: d.video_views })),
+          },
         },
       });
     }
@@ -167,15 +190,21 @@ function handleRequest(req, res) {
       return sendJson(res, 200, {
         platform,
         insights: {
-          impressions: 2360,
-          reach: 1805,
-          engagement: 190,
-          shares: 47,
-          clicks: 128,
+          impressions: { total: 2360 },
+          reach: { total: 1805 },
+          engagement: { total: 190 },
+          shares: { total: 47 },
+          clicks: { total: 128 },
         },
       });
     }
-    return sendJson(res, 200, { platform, insights: { impressions: 0, reach: 0 } });
+    return sendJson(res, 200, {
+      platform,
+      insights: {
+        impressions: { total: 0 },
+        reach: { total: 0 },
+      },
+    });
   }
   if (req.method === 'GET' && pathname === '/api/social/audience') {
     return sendJson(res, 200, { platform: query.platform, audience: { age: 'unknown', location: 'unknown' } });

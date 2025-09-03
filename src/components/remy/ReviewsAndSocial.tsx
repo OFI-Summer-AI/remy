@@ -25,6 +25,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { viewSocialInsights } from "@/lib/api";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  BarChart,
+  Bar,
+} from "recharts";
 
 type RecentReview = { author: string; rating: number; text: string; date: string };
 type RecentPost = { image: string; caption: string; likes: number; comments: number; date: string };
@@ -51,15 +65,15 @@ type Social = {
   demographics: { age1825: number; age2635: number; age3645: number; age45plus: number };
 };
 
-type SocialInsights = {
-  impressions: number;
-  reach: number;
-  engagement: number;
-  saved?: number;
-  likes?: number;
-  comments?: number;
-  shares?: number;
-  clicks?: number;
+type InsightPoint = { date: string; value: number };
+type InsightMetric = { total: number; series?: InsightPoint[] };
+type SocialInsights = Record<string, number | InsightMetric>;
+type InstagramInsights = {
+  impressions: InsightMetric;
+  reach: InsightMetric;
+  engagement: InsightMetric;
+  saved: InsightMetric;
+  video_views: InsightMetric;
 };
 
 const ReviewsAndSocial: React.FC = () => {
@@ -742,21 +756,115 @@ const ReviewsAndSocial: React.FC = () => {
       </Dialog>
       {/* Social Insights Modal */}
       <Dialog open={insightsOpen} onOpenChange={setInsightsOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{insightsPlatform} Insights</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
-            {insightsData &&
-              Object.entries(insightsData).map(([key, value]) => (
-                <div key={key} className="text-center">
-                  <div className="text-lg font-bold">{value}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {key.replace(/_/g, " ")}
+          {insightsPlatform === "Instagram" && insightsData ? (
+            (() => {
+              const data = insightsData as InstagramInsights;
+              const lineData = data.impressions.series.map((pt, idx) => ({
+                date: pt.date,
+                impressions: pt.value,
+                reach: data.reach.series[idx]?.value ?? 0,
+                engagement: data.engagement.series[idx]?.value ?? 0,
+              }));
+              const barData = data.saved.series.map((pt, idx) => ({
+                date: pt.date,
+                saved: pt.value,
+                video_views: data.video_views.series[idx]?.value ?? 0,
+              }));
+              return (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(data).map(([key, metric]) => (
+                      <div key={key} className="text-center">
+                        <div className="text-lg font-bold">{metric.total}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {key.replace(/_/g, " ")}
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                  <ChartContainer
+                    className="h-[250px]"
+                    config={{
+                      impressions: { label: "Impressions", color: "hsl(var(--chart-1))" },
+                      reach: { label: "Reach", color: "hsl(var(--chart-2))" },
+                      engagement: { label: "Engagement", color: "hsl(var(--chart-3))" },
+                    }}
+                  >
+                    <LineChart data={lineData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Line
+                        type="monotone"
+                        dataKey="impressions"
+                        stroke="var(--color-impressions)"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="reach"
+                        stroke="var(--color-reach)"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="engagement"
+                        stroke="var(--color-engagement)"
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ChartContainer>
+                  <ChartContainer
+                    className="h-[250px]"
+                    config={{
+                      saved: { label: "Saved", color: "hsl(var(--chart-4))" },
+                      video_views: { label: "Video Views", color: "hsl(var(--chart-5))" },
+                    }}
+                  >
+                    <BarChart data={barData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar
+                        dataKey="saved"
+                        fill="var(--color-saved)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="video_views"
+                        fill="var(--color-video_views)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
                 </div>
-              ))}
-          </div>
+              );
+            })()
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {insightsData &&
+                Object.entries(insightsData).map(([key, value]) => {
+                  const displayValue =
+                    typeof value === "object" && value !== null
+                      ? (value as InsightMetric).total
+                      : (value as number);
+                  return (
+                    <div key={key} className="text-center">
+                      <div className="text-lg font-bold">{displayValue}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {key.replace(/_/g, " ")}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       <Dialog open={schedulerOpen} onOpenChange={setSchedulerOpen}>
