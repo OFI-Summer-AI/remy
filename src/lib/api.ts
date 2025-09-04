@@ -154,18 +154,21 @@ export async function postSocialNow(data: {
   description: string;
   tags?: string;
 }): Promise<unknown> {
+  const url = import.meta.env.VITE_N8N_WEBHOOK_URL;
+  if (!url) throw new Error("Missing VITE_N8N_WEBHOOK_URL");
+
   const form = new FormData();
-  // Google Drive n8n workflow expects the binary under "data0"
-  form.append("data0", data.file, data.file.name);
+  // n8n webhook expects the binary under the "file" field to mirror the
+  // Python `requests` example used for testing.
+  form.append("file", data.file, data.file.name);
   form.append("description", data.description);
   if (data.tags) form.append("tags", data.tags);
 
-  // TODO: replace direct webhook call with backend endpoint when available
-  const res = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL || "", {
+  // Direct call to n8n webhook. `no-cors` lets the request go through even if
+  // the deployment omits CORS headers. Remove once a backend proxy exists.
+  const res = await fetch(url, {
     method: "POST",
     body: form,
-    // n8n deployment lacks CORS headers; `no-cors` allows the request to be
-    // sent even though the response is opaque. Remove once backend proxy exists.
     mode: "no-cors",
   });
 
