@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { Star, TrendingUp, TrendingDown, ArrowLeft, CheckCircle2 } from "lucide-react";
+import ChatbotPlaceholder from "./ChatbotPlaceholder";
 
 type RecentReview = { author: string; rating: number; text: string; date: string };
 
@@ -429,6 +430,7 @@ const ReviewsSection: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+      <ChatbotPlaceholder />
     </div>
   );
 };
