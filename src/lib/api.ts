@@ -42,8 +42,8 @@ export async function postSocialNow(data: {
   tags?: string;
 }): Promise<unknown> {
   const form = new FormData();
-  // n8n workflow expects the binary under "file"
-  form.append("file", data.file);
+  // Google Drive n8n workflow expects the binary under "data0"
+  form.append("data0", data.file, data.file.name);
   form.append("description", data.description);
   if (data.tags) form.append("tags", data.tags);
 
