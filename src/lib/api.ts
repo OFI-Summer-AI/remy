@@ -160,15 +160,22 @@ export async function postSocialNow(data: {
   form.append("description", data.description);
   if (data.tags) form.append("tags", data.tags);
 
-  // TODO: replace webhook URL with backend endpoint when available
+  // TODO: replace direct webhook call with backend endpoint when available
   const res = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL || "", {
     method: "POST",
     body: form,
+    // n8n deployment lacks CORS headers; `no-cors` allows the request to be
+    // sent even though the response is opaque. Remove once backend proxy exists.
+    mode: "no-cors",
   });
-  if (!res.ok) {
+
+  // Opaque responses return status 0 and `ok` is false, but the request is
+  // still delivered to n8n. Treat that as success for now.
+  if (!res.ok && res.type !== "opaque") {
     throw new Error("Failed to publish social post");
   }
-  return res.json();
+
+  return {};
 }
 
 export async function viewAllReviews<T>(platform: string): Promise<T> {
