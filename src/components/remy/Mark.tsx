@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-const ChatbotPlaceholder: React.FC = () => {
+// Temporary placeholder until real AI chatbot is integrated
+const Mark: React.FC = () => {
   const [question, setQuestion] = React.useState("");
   const [tip, setTip] = React.useState("");
   const sampleTips = [
@@ -14,7 +15,7 @@ const ChatbotPlaceholder: React.FC = () => {
   return (
     <Card className="mt-8">
       <CardHeader>
-        <CardTitle>Photo Idea Chatbot</CardTitle>
+        <CardTitle>Mark</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <Textarea
@@ -34,4 +35,4 @@ const ChatbotPlaceholder: React.FC = () => {
   );
 };
 
-export default ChatbotPlaceholder;
+export default Mark;

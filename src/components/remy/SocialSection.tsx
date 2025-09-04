@@ -43,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import ChatbotPlaceholder from "./ChatbotPlaceholder";
+import Mark from "./Mark";
 
 type RecentPost = { image: string; caption: string; likes: number; comments: number; date: string };
 
@@ -564,7 +564,7 @@ const SocialSection: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <ChatbotPlaceholder />
+      <Mark />
     </div>
   );
 };
