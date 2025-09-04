@@ -72,6 +72,27 @@ interface InstagramInsightsData extends InstagramInsightsBundle {
   };
 }
 
+interface ContentItem {
+  id: string;
+  type: string;
+  date: string;
+  image_url: string;
+  views: number;
+  reach: number;
+  interactions: {
+    likes?: number;
+    comments?: number;
+    saves?: number;
+    shares?: number;
+    replies?: number;
+  };
+  profile_activity: { profile_visits: number; follows: number };
+  impressions_legacy?: number;
+  ig_reels_avg_watch_time?: number;
+  ig_reels_video_view_total_time?: number;
+  navigation_breakdown?: Record<string, number>;
+}
+
 const SocialSection: React.FC = () => {
   const { toast } = useToast();
   const [selectedSocial, setSelectedSocial] = React.useState<Social | null>(null);
@@ -86,6 +107,8 @@ const SocialSection: React.FC = () => {
   const [insightsPlatform, setInsightsPlatform] = React.useState("");
   const [insightsRange, setInsightsRange] = React.useState("7");
   const [insightsCategory, setInsightsCategory] = React.useState("Account");
+  const [contentItems, setContentItems] = React.useState<ContentItem[]>([]);
+  const [selectedContent, setSelectedContent] = React.useState<ContentItem | null>(null);
 
   // TODO: replace with getTrendingHashtags() when backend is available
   const trendingHashtags = ["foodie", "yum", "instafood"];
@@ -158,6 +181,15 @@ const SocialSection: React.FC = () => {
       toast({ title: "Error", description: `Failed to load ${platform} insights` });
     }
   };
+
+  React.useEffect(() => {
+    if (insightsCategory === "Content" && contentItems.length === 0) {
+      fetch("/mocks/instagram_insights.per_item.last_30_days.json")
+        .then((res) => res.json())
+        .then((data: ContentItem[]) => setContentItems(data))
+        .catch(() => {});
+    }
+  }, [insightsCategory, contentItems.length]);
 
   return (
     <div>
@@ -439,56 +471,79 @@ const SocialSection: React.FC = () => {
               })()
             ) : (
               (() => {
-                const content = insightsData.content;
+                const items = contentItems;
+                const totalViews = items.reduce((s, i) => s + i.views, 0);
+                const totalReach = items.reduce((s, i) => s + (i.reach || 0), 0);
+                const totalSaves = items.reduce((s, i) => s + (i.interactions?.saves || 0), 0);
+
+                const daily: Record<string, { date: string; views: number; reach: number }> = {};
+                items.forEach((i) => {
+                  const d = i.date.slice(0, 10);
+                  if (!daily[d]) daily[d] = { date: d, views: 0, reach: 0 };
+                  daily[d].views += i.views;
+                  daily[d].reach += i.reach || 0;
+                });
+                const lineData = Object.values(daily);
+
+                const barTotals: Record<string, number> = { post: 0, story: 0, reel: 0 };
+                items.forEach((i) => {
+                  barTotals[i.type] = (barTotals[i.type] || 0) + i.views;
+                });
+                const barData = Object.entries(barTotals).map(([type, views]) => ({ type, views }));
+
                 return (
-                  <div className="space-y-4 text-sm">
-                    <div>
-                      <h4 className="font-semibold mb-1">Content You Shared</h4>
-                      <p>
-                        Posts: {content.summary.counts.posts}, Stories: {content.summary.counts.stories}, Reels: {content.summary.counts.reels}, Videos: {content.summary.counts.videos}, Live: {content.summary.counts.live}
-                      </p>
-                      <p>Active promotions: {content.summary.active_promotions}</p>
+                  <div className="space-y-6 text-sm">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-xl font-bold">{totalViews}</div>
+                        <div className="text-muted-foreground">Views</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold">{totalReach}</div>
+                        <div className="text-muted-foreground">Reach</div>
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold">{totalSaves}</div>
+                        <div className="text-muted-foreground">Saves</div>
+                      </div>
                     </div>
-                    {content.per_post && (
-                      <div>
-                        <h5 className="font-semibold">Posts</h5>
-                        {content.per_post.map((p) => (
-                          <pre key={p.post_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(p, null, 2)}</pre>
-                        ))}
-                      </div>
+                    {lineData.length > 1 && (
+                      <ChartContainer className="h-[200px]" config={{
+                          views: { label: "Views", color: "hsl(var(--chart-1))" },
+                          reach: { label: "Reach", color: "hsl(var(--chart-2))" },
+                        }}>
+                        <AreaChart data={lineData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Area type="monotone" dataKey="views" stroke="var(--color-views)" fill="var(--color-views)" fillOpacity={0.3} />
+                          <Area type="monotone" dataKey="reach" stroke="var(--color-reach)" fill="var(--color-reach)" fillOpacity={0.3} />
+                        </AreaChart>
+                      </ChartContainer>
                     )}
-                    {content.per_story && (
-                      <div>
-                        <h5 className="font-semibold">Stories</h5>
-                        {content.per_story.map((s) => (
-                          <pre key={s.story_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(s, null, 2)}</pre>
-                        ))}
-                      </div>
-                    )}
-                    {content.per_reel && (
-                      <div>
-                        <h5 className="font-semibold">Reels</h5>
-                        {content.per_reel.map((r) => (
-                          <pre key={r.reel_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(r, null, 2)}</pre>
-                        ))}
-                      </div>
-                    )}
-                    {content.per_video && (
-                      <div>
-                        <h5 className="font-semibold">Videos</h5>
-                        {content.per_video.map((v) => (
-                          <pre key={v.video_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(v, null, 2)}</pre>
-                        ))}
-                      </div>
-                    )}
-                    {content.per_live && (
-                      <div>
-                        <h5 className="font-semibold">Live</h5>
-                        {content.per_live.map((l) => (
-                          <pre key={l.live_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(l, null, 2)}</pre>
-                        ))}
-                      </div>
-                    )}
+                    <ChartContainer className="h-[200px]" config={{
+                        views: { label: "Views", color: "hsl(var(--chart-3))" },
+                      }}>
+                      <BarChart data={barData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="type" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="views" fill="var(--color-views)" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ChartContainer>
+                    <div className="grid grid-cols-3 gap-4">
+                      {items.map((item) => (
+                        <div key={item.id} className="cursor-pointer space-y-1" onClick={() => setSelectedContent(item)}>
+                          <img src={item.image_url} alt={item.type} className="rounded" />
+                          <Badge>{item.type}</Badge>
+                          <div className="text-xs">
+                            {item.views} views • {item.reach} reach • {(item.interactions?.saves || 0)} saves
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 );
               })()
@@ -508,6 +563,54 @@ const SocialSection: React.FC = () => {
                     </div>
                   );
                 })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedContent} onOpenChange={() => setSelectedContent(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Content details</DialogTitle>
+          </DialogHeader>
+          {selectedContent && (
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div>Views: {selectedContent.views}</div>
+                <div>Reach: {selectedContent.reach}</div>
+                <div>Saves: {selectedContent.interactions?.saves}</div>
+                <div>Shares: {selectedContent.interactions?.shares}</div>
+                <div>Likes: {selectedContent.interactions?.likes}</div>
+                <div>Comments: {selectedContent.interactions?.comments}</div>
+                <div>Profile Visits: {selectedContent.profile_activity?.profile_visits}</div>
+                <div>Follows: {selectedContent.profile_activity?.follows}</div>
+                {selectedContent.impressions_legacy && (
+                  <div className="col-span-2">
+                    Impressions (legacy): {selectedContent.impressions_legacy}
+                  </div>
+                )}
+              </div>
+              {selectedContent.navigation_breakdown && (
+                <ChartContainer className="h-[200px]" config={{
+                    nav: { label: 'Navigation', color: 'hsl(var(--chart-4))' },
+                  }}>
+                  <BarChart
+                    data={Object.entries(selectedContent.navigation_breakdown).map(([action, value]) => ({ action, value }))}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="action" />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="value" fill="var(--color-nav)" />
+                  </BarChart>
+                </ChartContainer>
+              )}
+              {selectedContent.ig_reels_avg_watch_time && (
+                <p>
+                  Avg watch time: {selectedContent.ig_reels_avg_watch_time.toFixed(1)}s ({selectedContent.ig_reels_video_view_total_time}s total)
+                </p>
+              )}
             </div>
           )}
         </DialogContent>

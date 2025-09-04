@@ -9,7 +9,10 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server/index.js"
+    "server": "node server/index.js",
+    "mock:media": "ts-node --transpile-only scripts/mock_media_insights.ts --count 12 --region global --out mocks",
+    "mock:media:eu": "ts-node --transpile-only scripts/mock_media_insights.ts --count 6 --region eu --out mocks",
+    "mock:media:stories": "ts-node --transpile-only scripts/mock_media_insights.ts --count 6 --story_highlight true --out mocks"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -80,6 +83,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
+    "ts-node": "^10.9.2",
     "vite": "^5.4.19"
   }
 }

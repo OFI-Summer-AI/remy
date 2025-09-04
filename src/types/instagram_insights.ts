@@ -98,35 +98,47 @@ export interface AccountInsights {
 
 export interface PerPostInsights {
   post_id: string;
+  views: number;
   accounts_reached: number;
+  reach?: number; // alias for accounts_reached
   content_interactions: ContentInteractions;
   profile_activity: ProfileActivity;
-  impressions: number;
+  impressions_legacy?: number; // only for media created on/before 2024-07-01
   reach_sources: ReachSources;
   promoted?: boolean;
 }
 
 export interface PerStoryInsights {
   story_id: string;
+  views: number;
   accounts_reached: number;
-  impressions: number;
+  impressions_legacy?: number; // legacy only
   taps_back: number;
   taps_forward: number;
   taps_next_story: number;
   exits: number;
   link_clicks: number;
   replies: number;
+  navigation_breakdown?: {
+    TAP_FORWARD: number;
+    TAP_BACK: number;
+    TAP_EXIT: number;
+    SWIPE_FORWARD: number;
+  };
+  navigation_total?: number;
   profile_activity: ProfileActivity;
 }
 
 export interface PerReelInsights {
   reel_id: string;
-  plays: number;
+  views: number;
   reach: number;
   likes: number;
   comments: number;
   shares: number;
   saves: number;
+  ig_reels_avg_watch_time?: number;
+  ig_reels_video_view_total_time?: number;
 }
 
 export interface PerVideoInsights {

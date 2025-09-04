@@ -1,0 +1,80 @@
+[
+  {
+    "id": "384295",
+    "type": "reel",
+    "date": "2024-07-18T00:00:00.000Z",
+    "image_url": "https://picsum.photos/seed/384295/200/200",
+    "views": 229,
+    "reach": 152,
+    "interactions": {
+      "likes": 15,
+      "comments": 1,
+      "saves": 2,
+      "shares": 1
+    },
+    "profile_activity": {
+      "profile_visits": 9,
+      "follows": 4
+    },
+    "ig_reels_avg_watch_time": 8.228268085978925,
+    "ig_reels_video_view_total_time": 1884
+  },
+  {
+    "id": "44989572",
+    "type": "post",
+    "date": "2024-08-13T00:00:00.000Z",
+    "image_url": "https://picsum.photos/seed/44989572/200/200",
+    "views": 126,
+    "reach": 99,
+    "interactions": {
+      "likes": 9,
+      "comments": 1,
+      "saves": 1,
+      "shares": 1
+    },
+    "profile_activity": {
+      "profile_visits": 8,
+      "follows": 1
+    }
+  },
+  {
+    "id": "29520867",
+    "type": "reel",
+    "date": "2024-07-20T00:00:00.000Z",
+    "image_url": "https://picsum.photos/seed/29520867/200/200",
+    "views": 230,
+    "reach": 189,
+    "interactions": {
+      "likes": 23,
+      "comments": 3,
+      "saves": 3,
+      "shares": 2
+    },
+    "profile_activity": {
+      "profile_visits": 8,
+      "follows": 2
+    },
+    "ig_reels_avg_watch_time": 9.551154183223844,
+    "ig_reels_video_view_total_time": 2197
+  },
+  {
+    "id": "20768773",
+    "type": "reel",
+    "date": "2024-07-18T00:00:00.000Z",
+    "image_url": "https://picsum.photos/seed/20768773/200/200",
+    "views": 169,
+    "reach": 140,
+    "interactions": {
+      "likes": 16,
+      "comments": 2,
+      "saves": 2,
+      "shares": 1
+    },
+    "profile_activity": {
+      "profile_visits": 11,
+      "follows": 4
+    },
+    "ig_reels_avg_watch_time": 16.411564227193594,
+    "ig_reels_video_view_total_time": 2774
+  }
+]
