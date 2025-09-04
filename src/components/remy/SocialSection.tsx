@@ -21,7 +21,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { viewSocialInsights, postSocialNow } from "@/lib/api";
+import { viewSocialInsights, postSocialNow, getSocialStats } from "@/lib/api";
 import {
   ChartContainer,
   ChartTooltip,
@@ -161,8 +161,7 @@ const SocialSection: React.FC = () => {
 
   const { data: socialData = defaultSocial } = useQuery<Social[]>({
     queryKey: ["social"],
-    // TODO: replace with getSocialStats() when backend is available
-    queryFn: async () => Promise.resolve(defaultSocial),
+    queryFn: () => getSocialStats<Social[]>(),
     initialData: defaultSocial,
   });
 
