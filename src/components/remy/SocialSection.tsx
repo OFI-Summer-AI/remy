@@ -21,7 +21,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { viewSocialInsights } from "@/lib/api";
+import { viewSocialInsights, postSocialNow } from "@/lib/api";
 import {
   ChartContainer,
   ChartTooltip,
@@ -101,6 +101,7 @@ const SocialSection: React.FC = () => {
   const [scheduleDate, setScheduleDate] = React.useState<Date | undefined>();
   const [scheduleTime, setScheduleTime] = React.useState("");
   const [scheduleMedia, setScheduleMedia] = React.useState<string | null>(null);
+  const [scheduleFile, setScheduleFile] = React.useState<File | null>(null);
   const [descriptionPrompt, setDescriptionPrompt] = React.useState("");
   const [insightsOpen, setInsightsOpen] = React.useState(false);
   const [insightsData, setInsightsData] = React.useState<InstagramInsightsData | Record<string, number | InsightMetric> | null>(null);
@@ -679,6 +680,7 @@ const SocialSection: React.FC = () => {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    setScheduleFile(file);
                     const reader = new FileReader();
                     reader.onloadend = () => setScheduleMedia(reader.result as string);
                     reader.readAsDataURL(file);
@@ -717,6 +719,7 @@ const SocialSection: React.FC = () => {
                 setScheduleDate(undefined);
                 setScheduleTime("");
                 setScheduleMedia(null);
+                setScheduleFile(null);
                 setDescriptionPrompt("");
               }}
             >
@@ -725,17 +728,37 @@ const SocialSection: React.FC = () => {
             <div className="flex gap-2">
               <Button
                 variant="secondary"
-                onClick={() => {
-                  toast({
-                    title: "Posted",
-                    description: `Post published on ${selectedSocial?.platform}`,
-                  });
-                  setSchedulerOpen(false);
-                  setScheduleContent("");
-                  setScheduleDate(undefined);
-                  setScheduleTime("");
-                  setScheduleMedia(null);
-                  setDescriptionPrompt("");
+                onClick={async () => {
+                  if (!scheduleFile) {
+                    toast({ title: "Error", description: "Please upload an image" });
+                    return;
+                  }
+                  try {
+                    const tags = trendingHashtags
+                      .filter((tag) => scheduleContent.includes(`#${tag}`))
+                      .join(",");
+                    await postSocialNow({
+                      file: scheduleFile,
+                      description: scheduleContent,
+                      tags,
+                    });
+                    toast({
+                      title: "Posted",
+                      description: `Post published on ${selectedSocial?.platform}`,
+                    });
+                    setSchedulerOpen(false);
+                    setScheduleContent("");
+                    setScheduleDate(undefined);
+                    setScheduleTime("");
+                    setScheduleMedia(null);
+                    setScheduleFile(null);
+                    setDescriptionPrompt("");
+                  } catch {
+                    toast({
+                      title: "Error",
+                      description: `Failed to post on ${selectedSocial?.platform}`,
+                    });
+                  }
                 }}
               >
                 Post Now
@@ -754,6 +777,7 @@ const SocialSection: React.FC = () => {
                   setScheduleDate(undefined);
                   setScheduleTime("");
                   setScheduleMedia(null);
+                  setScheduleFile(null);
                   setDescriptionPrompt("");
                 }}
               >

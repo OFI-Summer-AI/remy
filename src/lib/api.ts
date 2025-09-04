@@ -36,17 +36,26 @@ export async function scheduleSocialPost<T>(data: T): Promise<T> {
   return Promise.resolve(data);
 }
 
-export async function postSocialNow<T>(data: T): Promise<T> {
-  // const response = await fetch("/api/social/post", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(data),
-  // });
-  // if (!response.ok) {
-  //   throw new Error("Failed to publish social post");
-  // }
-  // return response.json() as Promise<T>;
-  return Promise.resolve(data);
+export async function postSocialNow(data: {
+  file: File;
+  description: string;
+  tags?: string;
+}): Promise<unknown> {
+  const form = new FormData();
+  // n8n workflow expects the binary under "file"
+  form.append("file", data.file);
+  form.append("description", data.description);
+  if (data.tags) form.append("tags", data.tags);
+
+  // TODO: replace webhook URL with backend endpoint when available
+  const res = await fetch(import.meta.env.VITE_N8N_WEBHOOK_URL || "", {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    throw new Error("Failed to publish social post");
+  }
+  return res.json();
 }
 
 export async function viewAllReviews<T>(platform: string): Promise<T> {
