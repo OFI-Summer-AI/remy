@@ -106,6 +106,45 @@ export interface PerPostInsights {
   promoted?: boolean;
 }
 
+export interface PerStoryInsights {
+  story_id: string;
+  accounts_reached: number;
+  impressions: number;
+  taps_back: number;
+  taps_forward: number;
+  taps_next_story: number;
+  exits: number;
+  link_clicks: number;
+  replies: number;
+  profile_activity: ProfileActivity;
+}
+
+export interface PerReelInsights {
+  reel_id: string;
+  plays: number;
+  reach: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves: number;
+}
+
+export interface PerVideoInsights {
+  video_id: string;
+  views: number;
+  avg_watch_percent: number;
+  content_interactions: ContentInteractions;
+  profile_activity: ProfileActivity;
+}
+
+export interface PerLiveInsights {
+  live_id: string;
+  peak_viewers: number;
+  reach: number;
+  comments: number;
+  content_interactions: ContentInteractions;
+}
+
 export interface ContentYouSharedSummary {
   period: TimeRange;
   counts: {
@@ -121,6 +160,10 @@ export interface ContentYouSharedSummary {
 export interface ContentInsights {
   summary: ContentYouSharedSummary;
   per_post?: PerPostInsights[];
+  per_story?: PerStoryInsights[];
+  per_reel?: PerReelInsights[];
+  per_video?: PerVideoInsights[];
+  per_live?: PerLiveInsights[];
 }
 
 export interface InstagramInsightsBundle {

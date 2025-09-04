@@ -27,6 +27,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import type { InstagramInsightsBundle } from "@/types/instagram_insights";
 import {
   AreaChart,
   Area,
@@ -60,15 +61,16 @@ type Social = {
 
 type InsightPoint = { date: string; value: number };
 type InsightMetric = { total: number; series?: InsightPoint[] };
-type SocialInsights = Record<string, number | InsightMetric>;
 
-type InstagramInsights = {
-  impressions: InsightMetric;
-  reach: InsightMetric;
-  engagement: InsightMetric;
-  saved: InsightMetric;
-  video_views: InsightMetric;
-};
+interface InstagramInsightsData extends InstagramInsightsBundle {
+  metrics: {
+    impressions: InsightMetric;
+    reach: InsightMetric;
+    engagement: InsightMetric;
+    saved: InsightMetric;
+    video_views: InsightMetric;
+  };
+}
 
 const SocialSection: React.FC = () => {
   const { toast } = useToast();
@@ -80,7 +82,7 @@ const SocialSection: React.FC = () => {
   const [scheduleMedia, setScheduleMedia] = React.useState<string | null>(null);
   const [descriptionPrompt, setDescriptionPrompt] = React.useState("");
   const [insightsOpen, setInsightsOpen] = React.useState(false);
-  const [insightsData, setInsightsData] = React.useState<SocialInsights | null>(null);
+  const [insightsData, setInsightsData] = React.useState<InstagramInsightsData | Record<string, number | InsightMetric> | null>(null);
   const [insightsPlatform, setInsightsPlatform] = React.useState("");
   const [insightsRange, setInsightsRange] = React.useState("7");
   const [insightsCategory, setInsightsCategory] = React.useState("Account");
@@ -142,8 +144,13 @@ const SocialSection: React.FC = () => {
 
   const openInsights = async (platform: string) => {
     try {
-      const data = await viewSocialInsights<{ platform: string; insights: SocialInsights }>(platform);
-      setInsightsData(data.insights);
+      if (platform === "Instagram") {
+        const data = await viewSocialInsights<{ platform: string; insights: InstagramInsightsData }>(platform);
+        setInsightsData(data.insights);
+      } else {
+        const data = await viewSocialInsights<{ platform: string; insights: Record<string, number | InsightMetric> }>(platform);
+        setInsightsData(data.insights);
+      }
       setInsightsPlatform(platform);
       setInsightsOpen(true);
       toast({ title: "Opened", description: `Viewing ${platform} insights` });
@@ -335,20 +342,37 @@ const SocialSection: React.FC = () => {
           <DialogHeader>
             <DialogTitle>{insightsPlatform} Insights</DialogTitle>
           </DialogHeader>
-          {insightsData ? (
+          <div className="mb-4 flex gap-2">
+            <Button
+              variant={insightsCategory === "Account" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setInsightsCategory("Account")}
+            >
+              Account
+            </Button>
+            <Button
+              variant={insightsCategory === "Content" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setInsightsCategory("Content")}
+            >
+              Content
+            </Button>
+          </div>
+          {insightsPlatform === "Instagram" && insightsData && 'metrics' in insightsData ? (
             insightsCategory === "Account" ? (
               (() => {
-                const lineData = (insightsData as InstagramInsights).impressions.series?.map((point, idx) => ({
+                const lineData = insightsData.metrics.impressions.series?.map((point, idx) => ({
                   date: point.date,
                   impressions: point.value,
-                  reach: (insightsData as InstagramInsights).reach.series?.[idx]?.value ?? 0,
-                  engagement: (insightsData as InstagramInsights).engagement.series?.[idx]?.value ?? 0,
+                  reach: insightsData.metrics.reach.series?.[idx]?.value ?? 0,
+                  engagement: insightsData.metrics.engagement.series?.[idx]?.value ?? 0,
                 })) ?? [];
-                const barData = (insightsData as InstagramInsights).saved.series?.map((point, idx) => ({
+                const barData = insightsData.metrics.saved.series?.map((point, idx) => ({
                   date: point.date,
                   saved: point.value,
-                  video_views: (insightsData as InstagramInsights).video_views.series?.[idx]?.value ?? 0,
+                  video_views: insightsData.metrics.video_views.series?.[idx]?.value ?? 0,
                 })) ?? [];
+                const account = insightsData.account;
                 return (
                   <div className="space-y-6">
                     <Select value={insightsRange} onValueChange={setInsightsRange}>
@@ -389,13 +413,85 @@ const SocialSection: React.FC = () => {
                         <Bar dataKey="video_views" fill="var(--color-video_views)" radius={[4,4,0,0]} />
                       </BarChart>
                     </ChartContainer>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <h4 className="font-semibold mb-1">Accounts Reached</h4>
+                        <p>Reach: {account.accounts_reached.reach}</p>
+                        <p>Followers: {account.accounts_reached.reached_audience.followers}</p>
+                        <p>Non-followers: {account.accounts_reached.reached_audience.non_followers}</p>
+                        <p>Impressions: {account.accounts_reached.impressions}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-1">Accounts Engaged</h4>
+                        <p>Total: {account.accounts_engaged.total_accounts_engaged}</p>
+                        <p>Followers: {account.accounts_engaged.engaged_audience.followers}</p>
+                        <p>Non-followers: {account.accounts_engaged.engaged_audience.non_followers}</p>
+                        <p>Likes: {account.accounts_engaged.content_interactions.likes}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-1">Total Followers</h4>
+                        <p>Count: {account.total_followers.follower_count}</p>
+                        <p>Net Growth: {account.total_followers.growth.net}</p>
+                      </div>
+                    </div>
                   </div>
                 );
               })()
             ) : (
-              <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground">
-                Content insights coming soon
-              </div>
+              (() => {
+                const content = insightsData.content;
+                return (
+                  <div className="space-y-4 text-sm">
+                    <div>
+                      <h4 className="font-semibold mb-1">Content You Shared</h4>
+                      <p>
+                        Posts: {content.summary.counts.posts}, Stories: {content.summary.counts.stories}, Reels: {content.summary.counts.reels}, Videos: {content.summary.counts.videos}, Live: {content.summary.counts.live}
+                      </p>
+                      <p>Active promotions: {content.summary.active_promotions}</p>
+                    </div>
+                    {content.per_post && (
+                      <div>
+                        <h5 className="font-semibold">Posts</h5>
+                        {content.per_post.map((p) => (
+                          <pre key={p.post_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(p, null, 2)}</pre>
+                        ))}
+                      </div>
+                    )}
+                    {content.per_story && (
+                      <div>
+                        <h5 className="font-semibold">Stories</h5>
+                        {content.per_story.map((s) => (
+                          <pre key={s.story_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(s, null, 2)}</pre>
+                        ))}
+                      </div>
+                    )}
+                    {content.per_reel && (
+                      <div>
+                        <h5 className="font-semibold">Reels</h5>
+                        {content.per_reel.map((r) => (
+                          <pre key={r.reel_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(r, null, 2)}</pre>
+                        ))}
+                      </div>
+                    )}
+                    {content.per_video && (
+                      <div>
+                        <h5 className="font-semibold">Videos</h5>
+                        {content.per_video.map((v) => (
+                          <pre key={v.video_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(v, null, 2)}</pre>
+                        ))}
+                      </div>
+                    )}
+                    {content.per_live && (
+                      <div>
+                        <h5 className="font-semibold">Live</h5>
+                        {content.per_live.map((l) => (
+                          <pre key={l.live_id} className="bg-muted p-2 rounded mb-2 text-xs">{JSON.stringify(l, null, 2)}</pre>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
             )
           ) : (
             <div className="grid grid-cols-2 gap-4">

@@ -151,6 +151,7 @@ function handleRequest(req, res) {
   if (req.method === 'GET' && pathname === '/api/social/insights') {
     const platform = query.platform;
     if (platform === 'Instagram') {
+      // TODO: replace mock data with real Instagram insights
       const daily = [
         { date: 'Mon', impressions: 200, reach: 180, engagement: 45, saved: 5, video_views: 20 },
         { date: 'Tue', impressions: 240, reach: 190, engagement: 52, saved: 4, video_views: 25 },
@@ -160,29 +161,156 @@ function handleRequest(req, res) {
         { date: 'Sat', impressions: 160, reach: 140, engagement: 35, saved: 3, video_views: 15 },
         { date: 'Sun', impressions: 160, reach: 130, engagement: 38, saved: 2, video_views: 10 },
       ];
+      const account = {
+        time_ranges: ['last_7_days', 'last_14_days', 'last_30_days', 'last_90_days'],
+        accounts_reached: {
+          reach: 1200,
+          reached_audience: { followers: 800, non_followers: 400 },
+          content_reach: { posts: 700, stories: 300, reels: 200, videos: 100, live: 50 },
+          top_posts: [{ id: 'p1', type: 'post', accounts_reached: 400, impressions: 500, interactions: 50 }],
+          top_stories: [{ id: 's1', type: 'story', accounts_reached: 200, impressions: 250, interactions: 30 }],
+          impressions: 1500,
+          profile_activity: {
+            profile_visits: 100,
+            website_taps: 20,
+            address_taps: 5,
+            call_button_taps: 2,
+            email_button_taps: 3,
+            text_button_taps: 1,
+          },
+        },
+        accounts_engaged: {
+          total_accounts_engaged: 600,
+          engaged_audience: { followers: 400, non_followers: 200 },
+          engager_demographics: {
+            top_countries: ['US', 'CA'],
+            top_cities: ['New York', 'Toronto'],
+            age_ranges: ['18-24', '25-34'],
+            gender_distribution: { male: 55, female: 45 },
+          },
+          content_interactions: {
+            likes: 300,
+            comments: 40,
+            shares: 20,
+            saves: 25,
+            replies: 15,
+          },
+          top_posts: [{ id: 'p1', type: 'post', accounts_reached: 400, impressions: 500, interactions: 50 }],
+          top_stories: [{ id: 's1', type: 'story', accounts_reached: 200, impressions: 250, interactions: 30 }],
+          top_reels: [{ id: 'r1', type: 'reel', accounts_reached: 150, impressions: 200, interactions: 25 }],
+          top_videos: [{ id: 'v1', type: 'video', accounts_reached: 100, impressions: 150, interactions: 20 }],
+          top_live_videos: [{ id: 'l1', type: 'live', accounts_reached: 80, impressions: 120, interactions: 10 }],
+        },
+        total_followers: {
+          follower_count: 5000,
+          growth: { follows: 120, unfollows: 30, net: 90 },
+          top_locations: { countries: ['US', 'CA'], cities: ['New York', 'Toronto'] },
+          age_distribution: {
+            overall: { '18-24': 40, '25-34': 35, '35-44': 15 },
+            men: { '18-24': 20, '25-34': 15, '35-44': 5 },
+            women: { '18-24': 20, '25-34': 20, '35-44': 10 },
+          },
+          gender_distribution: { male: 50, female: 48, other: 2 },
+          active_times: {
+            by_hour: [5,3,2,1,1,2,4,6,8,9,7,6,5,4,3,2,3,5,6,7,8,7,6,5],
+            by_day: { Mon: 500, Tue: 550, Wed: 600, Thu: 580, Fri: 620, Sat: 700, Sun: 650 },
+          },
+        },
+      };
+      const content = {
+        summary: {
+          period: 'last_30_days',
+          counts: { posts: 10, stories: 15, reels: 5, videos: 2, live: 1 },
+          active_promotions: 1,
+        },
+        per_post: [
+          {
+            post_id: 'p1',
+            accounts_reached: 400,
+            content_interactions: { likes: 300, comments: 40, shares: 20, saves: 25 },
+            profile_activity: {
+              profile_visits: 50,
+              website_taps: 10,
+              address_taps: 2,
+              call_button_taps: 1,
+              email_button_taps: 1,
+              text_button_taps: 0,
+            },
+            impressions: 500,
+            reach_sources: { home: 300, hashtags: 100, profile: 80, other: 20 },
+            promoted: false,
+          },
+        ],
+        per_story: [
+          {
+            story_id: 's1',
+            accounts_reached: 200,
+            impressions: 250,
+            taps_back: 10,
+            taps_forward: 15,
+            taps_next_story: 5,
+            exits: 2,
+            link_clicks: 3,
+            replies: 4,
+            profile_activity: {
+              profile_visits: 20,
+              website_taps: 5,
+              address_taps: 1,
+              call_button_taps: 0,
+              email_button_taps: 0,
+              text_button_taps: 0,
+            },
+          },
+        ],
+        per_reel: [
+          {
+            reel_id: 'r1',
+            plays: 100,
+            reach: 90,
+            likes: 30,
+            comments: 5,
+            shares: 10,
+            saves: 8,
+          },
+        ],
+        per_video: [
+          {
+            video_id: 'v1',
+            views: 150,
+            avg_watch_percent: 65,
+            content_interactions: { likes: 40, comments: 6, shares: 3, saves: 5 },
+            profile_activity: {
+              profile_visits: 20,
+              website_taps: 4,
+              address_taps: 1,
+              call_button_taps: 0,
+              email_button_taps: 1,
+              text_button_taps: 0,
+            },
+          },
+        ],
+        per_live: [
+          {
+            live_id: 'l1',
+            peak_viewers: 45,
+            reach: 60,
+            comments: 10,
+            content_interactions: { likes: 25, comments: 10, shares: 3, saves: 2, replies: 5 },
+          },
+        ],
+      };
       return sendJson(res, 200, {
         platform,
         insights: {
-          impressions: {
-            total: 1420,
-            series: daily.map(d => ({ date: d.date, value: d.impressions })),
+          metrics: {
+            impressions: { total: 1420, series: daily.map(d => ({ date: d.date, value: d.impressions })) },
+            reach: { total: 1200, series: daily.map(d => ({ date: d.date, value: d.reach })) },
+            engagement: { total: 325, series: daily.map(d => ({ date: d.date, value: d.engagement })) },
+            saved: { total: 32, series: daily.map(d => ({ date: d.date, value: d.saved })) },
+            video_views: { total: 140, series: daily.map(d => ({ date: d.date, value: d.video_views })) },
           },
-          reach: {
-            total: 1200,
-            series: daily.map(d => ({ date: d.date, value: d.reach })),
-          },
-          engagement: {
-            total: 325,
-            series: daily.map(d => ({ date: d.date, value: d.engagement })),
-          },
-          saved: {
-            total: 32,
-            series: daily.map(d => ({ date: d.date, value: d.saved })),
-          },
-          video_views: {
-            total: 140,
-            series: daily.map(d => ({ date: d.date, value: d.video_views })),
-          },
+          account,
+          content,
         },
       });
     }

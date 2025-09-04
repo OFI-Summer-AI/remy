@@ -38,6 +38,19 @@
     - Impressions (total)
     - Sources: Home, hashtags, profile, Other
   - Promotion performance (if boosted)
+ - Stories-specific metrics
+   - Back, Forward, Next story, Exited
+   - Link clicks, Replies
+   - Visits/taps
+ - Reels-specific metrics
+   - Plays, Reach
+   - Likes, Comments, Shares, Saves
+ - Video-specific metrics
+   - Views, Avg % watched
+   - Interactions and CTAs (website/call/email/address/text)
+ - Live video metrics
+   - Peak concurrent viewers, Reach
+   - Comments, Interactions
 
 ## How to use
 - Use “Accounts Reached” for awareness.
