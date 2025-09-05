@@ -38,7 +38,7 @@ const PromotionsPanel: React.FC = () => {
 
   const [messages, setMessages] = React.useState(placeholderMessages);
 
-  const sendMessage = async () => {
+  const sendMessage = React.useCallback(async () => {
     if (!chatInput.trim()) return;
     
     const userMessage = {
@@ -79,7 +79,13 @@ const PromotionsPanel: React.FC = () => {
       setIsLoading(false);
       setChatInput("");
     }
-  };
+  }, [chatInput]);
+
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isLoading) {
+      sendMessage();
+    }
+  }, [sendMessage, isLoading]);
 
   return (
     <section aria-label="Promotions" className="space-y-3">
@@ -131,10 +137,10 @@ const PromotionsPanel: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Input 
                   value={chatInput} 
-                  onChange={e => setChatInput(e.target.value)} 
+                  onChange={(e) => setChatInput(e.target.value)} 
                   placeholder="Type your question..." 
                   aria-label="Promo chatbot input"
-                  onKeyPress={(e) => e.key === 'Enter' && !isLoading && sendMessage()}
+                  onKeyDown={handleKeyDown}
                 />
                 <Button 
                   type="button" 
