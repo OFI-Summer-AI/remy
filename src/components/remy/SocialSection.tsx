@@ -736,11 +736,22 @@ const SocialSection: React.FC = () => {
                     const tags = trendingHashtags
                       .filter((tag) => scheduleContent.includes(`#${tag}`))
                       .join(",");
-                    await postSocialNow({
-                      file: scheduleFile,
-                      description: scheduleContent,
-                      tags,
-                    });
+                    // Your n8n webhook URL
+                  const WEBHOOK_URL = "https://n8n.sofiatechnology.ai/webhook/fc0a67fd-b3dc-426c-a283-ef4f12800b02";
+
+                  const formData = new FormData();
+                  formData.append('file', scheduleFile, scheduleFile.name);
+                  formData.append('description', scheduleContent);
+                  formData.append('tags', tags || 'restaurant,social,remy');
+
+                  const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    body: formData,
+                  });
+
+                  if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                  }
                     toast({
                       title: "Posted",
                       description: `Post published on ${selectedSocial?.platform}`,
