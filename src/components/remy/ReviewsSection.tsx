@@ -260,8 +260,9 @@ const ReviewsSection: React.FC = () => {
 
   // Load reviews on component mount
   React.useEffect(() => {
+    console.log(`Component mounted. Using ${useProxy ? 'proxy server' : 'direct webhook'} mode.`);
     fetchReviews();
-  }, []);
+  }, [useProxy]); // Re-fetch when proxy mode changes
 
   const openAllReviews = (review: Review) => {
     setAllReviewsPlatform(review.platform);
