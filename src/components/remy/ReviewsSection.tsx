@@ -200,7 +200,14 @@ const ReviewsSection = () => {
                 <h3 className="text-lg font-semibold mb-3">Recent Reviews</h3>
                 <div className="space-y-3">
                   {selectedReview.recentReviews?.map((review, index) => (
-                    <Card key={index}>
+                    <Card 
+                      key={index}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => {
+                        setRespondingReview(review);
+                        setReplySent(false);
+                      }}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -220,6 +227,7 @@ const ReviewsSection = () => {
                               </div>
                             </div>
                             <p className="text-sm text-muted-foreground mb-2">{review.text}</p>
+                            <p className="text-xs text-blue-600">Click to respond →</p>
                           </div>
                           <span className="text-xs text-muted-foreground">{review.date}</span>
                         </div>
@@ -232,14 +240,6 @@ const ReviewsSection = () => {
               {/* Action Buttons */}
               <div className="flex gap-2">
                 <Button variant="outline">View All Reviews</Button>
-                <Button
-                  onClick={() => {
-                    setRespondingReview(selectedReview.recentReviews[0]);
-                    setReplySent(false);
-                  }}
-                >
-                  Respond to Reviews
-                </Button>
               </div>
             </div>
           )}
