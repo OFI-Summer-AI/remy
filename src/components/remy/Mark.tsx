@@ -1,9 +1,14 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+
 const Mark: React.FC = () => {
   const [question, setQuestion] = React.useState("");
   const [tip, setTip] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   
-  const getPhotoTip = async () => {
+  const getPhotoTip = React.useCallback(async () => {
     if (!question.trim()) {
       setTip("Please ask a specific question about photography or food styling!");
       return;
@@ -27,7 +32,7 @@ const Mark: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [question]);
 
   return (
     <Card className="mt-8">
@@ -55,3 +60,5 @@ const Mark: React.FC = () => {
     </Card>
   );
 };
+
+export default Mark;
