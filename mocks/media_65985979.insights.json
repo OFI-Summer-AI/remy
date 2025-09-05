@@ -1,0 +1,86 @@
+{
+  "data": [
+    {
+      "name": "views",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 210
+        }
+      ]
+    },
+    {
+      "name": "reach",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 185
+        }
+      ]
+    },
+    {
+      "name": "likes",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 12
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "saved",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 2
+        }
+      ]
+    },
+    {
+      "name": "shares",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "follows",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "name": "profile_activity",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 3,
+          "breakdowns": {
+            "action_type": {
+              "BIO_LINK_CLICKED": 0,
+              "CALL": 0,
+              "DIRECTION": 0,
+              "EMAIL": 1,
+              "OTHER": 1,
+              "TEXT": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

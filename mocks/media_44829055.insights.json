@@ -1,0 +1,104 @@
+{
+  "data": [
+    {
+      "name": "views",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 207
+        }
+      ]
+    },
+    {
+      "name": "reach",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 144
+        }
+      ]
+    },
+    {
+      "name": "likes",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 13
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "saved",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 2
+        }
+      ]
+    },
+    {
+      "name": "shares",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "name": "follows",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 4
+        }
+      ]
+    },
+    {
+      "name": "profile_activity",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 8,
+          "breakdowns": {
+            "action_type": {
+              "BIO_LINK_CLICKED": 1,
+              "CALL": 3,
+              "DIRECTION": 2,
+              "EMAIL": 1,
+              "OTHER": 0,
+              "TEXT": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ig_reels_avg_watch_time",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 11.667804661206901
+        }
+      ]
+    },
+    {
+      "name": "ig_reels_video_view_total_time",
+      "period": "lifetime",
+      "values": [
+        {
+          "value": 2415
+        }
+      ]
+    }
+  ]
+}
