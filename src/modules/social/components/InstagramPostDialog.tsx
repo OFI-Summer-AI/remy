@@ -153,9 +153,9 @@ const InstagramUploadDialog: React.FC<InstagramUploadDialogProps> = ({
       
       <div className="grid grid-cols-2 gap-3">
         <OptionButton
-          option="suggestions"
-          isSelected={option === 'suggestions'}
-          onClick={() => setOption('suggestions')}
+          option="suggestion"
+          isSelected={option === 'suggestion'}
+          onClick={() => setOption('suggestion')}
           icon={<Sparkles className="h-5 w-5" />}
           title={UI_CONFIG.OPTION_LABELS.suggestions}
           subtitle={UI_CONFIG.MESSAGES.SUGGESTIONS_OPTION}

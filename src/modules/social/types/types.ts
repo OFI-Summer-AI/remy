@@ -4,7 +4,7 @@ export interface UploadedFile {
   preview: string;
 }
 
-export type ProcessingOption = 'suggestions' | 'improve';
+export type ProcessingOption = 'suggestion' | 'improve';
 
 export type UploadStage = 'upload' | 'processing' | 'ready' | 'error';
 

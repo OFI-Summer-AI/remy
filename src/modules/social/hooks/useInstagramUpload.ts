@@ -13,7 +13,7 @@ import { FileValidator, ApiClient, createImagePreview } from '../utils/utils';
 export const useInstagramUpload = (): InstagramUploadState & InstagramUploadActions => {
   const [state, setState] = useState<InstagramUploadState>({
     uploadedFile: null,
-    option: 'suggestions',
+    option: 'suggestion',
     stage: 'upload',
     result: null,
     error: null,
@@ -73,7 +73,7 @@ export const useInstagramUpload = (): InstagramUploadState & InstagramUploadActi
     try {
       const result = await ApiClient.processImage(
         state.uploadedFile.file,
-        state.option
+        state.option 
       );
 
       setState(prev => ({
@@ -106,7 +106,7 @@ export const useInstagramUpload = (): InstagramUploadState & InstagramUploadActi
 
     try {
       const processedImageUrl = state.result?.type === 'image' 
-        ? state.result.data 
+        ? state.result.data
         : undefined;
 
       const result = await ApiClient.postToInstagram(
@@ -170,7 +170,7 @@ export const useInstagramUpload = (): InstagramUploadState & InstagramUploadActi
 
     setState({
       uploadedFile: null,
-      option: 'suggestions',
+      option: 'suggestion',
       stage: 'upload',
       result: null,
       error: null,

@@ -186,7 +186,7 @@ const SocialPage: React.FC = () => {
                     </div>
                     <span className="font-semibold">{review.rating}</span>
                   </div>
-                  <p className="text-sm text-muted">
+                  <p className="text-sm text-bg">
                     {review.totalReviews} total reviews
                   </p>
                   <p className="text-xs text-primary mt-2">Click for details →</p>
@@ -224,16 +224,16 @@ const SocialPage: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-muted" />
+                    <Users className="w-4 h-4 text-base" />
                     <span className="font-semibold">{social.followers}</span>
-                    <span className="text-sm text-muted">followers</span>
+                    <span className="text-sm text-primary">followers</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-muted" />
+                    <MessageSquare className="w-4 h-4 text-bg" />
                     <span className="font-semibold">{social.engagement}</span>
-                    <span className="text-sm text-muted">engagement</span>
+                    <span className="text-sm text-bg">engagement</span>
                   </div>
-                  <p className="text-sm text-muted">
+                  <p className="text-sm text-bg">
                     {social.posts} posts this month
                   </p>
                   <p className="text-xs text-primary mt-2">Click for details →</p>
