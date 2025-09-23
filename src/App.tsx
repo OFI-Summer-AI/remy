@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import SidebarLayout from "@/shared/components/common/SidebarLayout.";
 import StaffCalendarPage from "./modules/staff-calendar/pages/StaffCalendarPage";
-import PredictionPage from "@/shared/components/remy/SalesForecast";
+import PredictionPage from "@/modules/sales-overview/pages/PredictionPage";
 import StockAlertsPage from "./modules/stock-alerts/pages/StockAlertsPage";
 import TableAllocationPage from "./modules/table-allocation/pages/TableAllocationPage";
 import PromotionsPage from "./modules/promotions/pages/PromotionsPage";

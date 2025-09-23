@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { format, subDays } from "date-fns";
 import { Calendar } from "lucide-react";
+import { DaySelector } from "../components/DaySelector";
 
 /* -------------------- Types -------------------- */
 interface TimeSeries {
@@ -72,7 +73,7 @@ const bottomItems: Item[] = [
 ];
 
 /* -------------------- Component -------------------- */
-const SalesForecast: React.FC = () => {
+const PredictionPage: React.FC = () => {
   const orangePalette = ["#ff7a00", "#ff9d3d", "#ffb26b", "#ffc69a", "#ffe0c7"];
 
   const [showProjection, setShowProjection] = React.useState(true);
@@ -84,6 +85,11 @@ const SalesForecast: React.FC = () => {
 
   return (
     <section className="p-6 space-y-6">
+      <DaySelector 
+        onDaysChange={() => {}}
+        onGenerate={() => {}}
+        selectedDays={[]}
+      />
       <div className="bg-white rounded-2xl shadow-md">
         {/* Header Controls */}
         <div className="flex flex-row items-center justify-between p-6 border-b">
@@ -99,7 +105,7 @@ const SalesForecast: React.FC = () => {
                   onChange={(e) => setShowProjection(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
               </label>
             </div>
 
@@ -113,7 +119,7 @@ const SalesForecast: React.FC = () => {
                   onChange={(e) => setViewMode(e.target.checked ? "weekly" : "daily")}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
               </label>
               <label className="text-sm text-gray-600">Weekly</label>
             </div>
@@ -147,18 +153,18 @@ const SalesForecast: React.FC = () => {
                   <Line
                     type="monotone"
                     dataKey="sales"
-                    stroke="#2563eb"
+                    stroke="#ff9d3d"
                     strokeWidth={3}
-                    dot={{ fill: "#2563eb", strokeWidth: 0, r: 6 }}
+                    dot={{ fill: "#ff7a00", strokeWidth: 0, r: 6 }}
                   />
                   {showProjection && (
                     <Line
                       type="monotone"
                       dataKey="projection"
-                      stroke="#94a3b8"
+                      stroke="#ffe0c7"
                       strokeDasharray="5 5"
                       strokeWidth={2}
-                      dot={{ fill: "#94a3b8", strokeWidth: 0, r: 4 }}
+                      dot={{ fill: "#ffc69a", strokeWidth: 0, r: 4 }}
                     />
                   )}
                 </LineChart>
@@ -239,4 +245,4 @@ const ItemCard: React.FC<{ item: Item; rank: number }> = ({ item, rank }) => (
   </div>
 );
 
-export default SalesForecast;
+export default PredictionPage;
