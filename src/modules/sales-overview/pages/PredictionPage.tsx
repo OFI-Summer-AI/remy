@@ -72,7 +72,7 @@ const bottomItems: Item[] = [
 ];
 
 /* -------------------- Component -------------------- */
-const SalesForecast: React.FC = () => {
+const PredictionPage: React.FC = () => {
   const orangePalette = ["#ff7a00", "#ff9d3d", "#ffb26b", "#ffc69a", "#ffe0c7"];
 
   const [showProjection, setShowProjection] = React.useState(true);
@@ -239,4 +239,4 @@ const ItemCard: React.FC<{ item: Item; rank: number }> = ({ item, rank }) => (
   </div>
 );
 
-export default SalesForecast;
+export default PredictionPage;
