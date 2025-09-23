@@ -54,7 +54,7 @@ const SocialPage: React.FC = () => {
     clearReviews();
   };
 
-  // Mock data for review statistics (this would come from your analytics)
+  // FIXED: Mock data for review statistics with proper Platform objects
   const reviewsData = [
     {
       platform: "TripAdvisor" as Platform,
@@ -65,7 +65,7 @@ const SocialPage: React.FC = () => {
       color: "bg-success"
     },
     {
-      platform: "GoogleMaps" as Platform,
+      platform: "Google Maps"as Platform,
       rating: 4.1,
       totalReviews: 562,
       recentChange: "+8",
@@ -150,9 +150,9 @@ const SocialPage: React.FC = () => {
       <div>
         <h2 className="text-xl font-semibold mb-4 text-primary">Reviews Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {reviewsData.map((review) => (
+          {reviewsData.map((review, index) => (
             <Card 
-              key={review.platform} 
+              key={`${review.platform}-${index}`} 
               className="cursor-pointer hover:shadow-lg transition-shadow"
               onClick={() => handleReviewClick(review.platform)}
             >
@@ -161,9 +161,9 @@ const SocialPage: React.FC = () => {
                   {review.platform}
                   <Badge variant={review.trend === "up" ? "default" : "destructive"}>
                     {review.trend === "up" ? (
-                      <TrendingUp className="w-3 h-3 mr-1 text-success" />
+                      <TrendingUp className="w-3 h-3 mr-1 text-green-600" />
                     ) : (
-                      <TrendingDown className="w-3 h-3 mr-1 text-danger" />
+                      <TrendingDown className="w-3 h-3 mr-1 text-red-600" />
                     )}
                     {review.recentChange}
                   </Badge>
@@ -178,15 +178,15 @@ const SocialPage: React.FC = () => {
                           key={i}
                           className={`w-4 h-4 ${
                             i < Math.floor(review.rating)
-                              ? "text-accent fill-current"
-                              : "text-muted"
+                              ? "text-yellow-500 fill-current"
+                              : "text-muted-foreground/30"
                           }`}
                         />
                       ))}
                     </div>
                     <span className="font-semibold">{review.rating}</span>
                   </div>
-                  <p className="text-sm text-bg">
+                  <p className="text-sm text-muted-foreground">
                     {review.totalReviews} total reviews
                   </p>
                   <p className="text-xs text-primary mt-2">Click for details →</p>
@@ -213,9 +213,9 @@ const SocialPage: React.FC = () => {
                   {social.platform}
                   <Badge variant={social.trend === "up" ? "default" : "destructive"}>
                     {social.trend === "up" ? (
-                      <TrendingUp className="w-3 h-3 mr-1 text-success" />
+                      <TrendingUp className="w-3 h-3 mr-1 text-green-600" />
                     ) : (
-                      <TrendingDown className="w-3 h-3 mr-1 text-danger" />
+                      <TrendingDown className="w-3 h-3 mr-1 text-red-600" />
                     )}
                     {social.change}
                   </Badge>
@@ -224,16 +224,16 @@ const SocialPage: React.FC = () => {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-base" />
+                    <Users className="w-4 h-4 text-muted-foreground" />
                     <span className="font-semibold">{social.followers}</span>
-                    <span className="text-sm text-primary">followers</span>
+                    <span className="text-sm text-muted-foreground">followers</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-bg" />
+                    <MessageSquare className="w-4 h-4 text-muted-foreground" />
                     <span className="font-semibold">{social.engagement}</span>
-                    <span className="text-sm text-bg">engagement</span>
+                    <span className="text-sm text-muted-foreground">engagement</span>
                   </div>
-                  <p className="text-sm text-bg">
+                  <p className="text-sm text-muted-foreground">
                     {social.posts} posts this month
                   </p>
                   <p className="text-xs text-primary mt-2">Click for details →</p>
@@ -278,7 +278,7 @@ const SocialPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">{selectedSocial.platform} Analytics</h3>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-muted">
+                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                     <span>{selectedSocial.followers} followers</span>
                     <span>{selectedSocial.engagement} engagement</span>
                     <span>{selectedSocial.posts} posts this month</span>
@@ -302,7 +302,7 @@ const SocialPage: React.FC = () => {
                         <div className="text-2xl">{post.image}</div>
                         <div className="flex-grow">
                           <p className="text-gray-900 mb-2">{post.caption}</p>
-                          <div className="flex items-center gap-4 text-sm text-muted">
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <ThumbsUp className="w-3 h-3" />
                               {post.likes}
@@ -324,19 +324,19 @@ const SocialPage: React.FC = () => {
                 <h4 className="font-semibold text-gray-900 mb-3">Audience Demographics</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-muted">18-25 years</div>
+                    <div className="text-sm text-muted-foreground">18-25 years</div>
                     <div className="font-semibold">{selectedSocial.demographics.age1825}%</div>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-muted">26-35 years</div>
+                    <div className="text-sm text-muted-foreground">26-35 years</div>
                     <div className="font-semibold">{selectedSocial.demographics.age2635}%</div>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-muted">36-45 years</div>
+                    <div className="text-sm text-muted-foreground">36-45 years</div>
                     <div className="font-semibold">{selectedSocial.demographics.age3645}%</div>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-muted">45+ years</div>
+                    <div className="text-sm text-muted-foreground">45+ years</div>
                     <div className="font-semibold">{selectedSocial.demographics.age45plus}%</div>
                   </div>
                 </div>

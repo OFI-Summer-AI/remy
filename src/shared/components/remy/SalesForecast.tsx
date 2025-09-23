@@ -1,5 +1,5 @@
 import React from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { format, subDays } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -108,7 +108,10 @@ const bottomItems = [{
   units: 2,
   revenue: 120
 }];
-const SalesForecast: React.FC = () => {
+const PredictionPage: React.FC = () => {
+
+  const orangePalette = ["#ff7a00", "#ff9d3d", "#ffb26b", "#ffc69a", "#ffe0c7"];
+
   const [showProjection, setShowProjection] = React.useState(true);
   const [viewMode, setViewMode] = React.useState<"daily" | "weekly">("daily");
   const [dateFrom, setDateFrom] = React.useState<Date>(subDays(new Date(), 7));
@@ -117,7 +120,7 @@ const SalesForecast: React.FC = () => {
   return <section aria-label="Sales Forecast Chart">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle>Sales Chart</CardTitle>
+          <CardTitle>Prediction Chart</CardTitle>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Label htmlFor="toggle-proj" className="text-sm text-muted-foreground">
@@ -191,29 +194,26 @@ const SalesForecast: React.FC = () => {
                 </ResponsiveContainer>
               </ChartContainer>
             </div>
-            <div className="bg-slate-50">
+            <div className="bg-slate-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold mb-4">Sales by Category</h3>
-              <ChartContainer config={{
-              amount: {
-                label: "Revenue",
-                color: "hsl(var(--secondary))"
-              }
-            }} className="h-64 md:h-72">
-                <ResponsiveContainer>
-                  <BarChart data={categoryData} margin={{
-                  left: 8,
-                  right: 8,
-                  top: 8,
-                  bottom: 8
-                }}>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoryData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="category" />
                     <YAxis />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="amount" fill="var(--color-amount)" />
+                    <Tooltip />
+                    <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                      {categoryData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={orangePalette[index]} 
+                        />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </ChartContainer>
+              </div>
             </div>
           </div>
 
@@ -248,4 +248,4 @@ const SalesForecast: React.FC = () => {
       </Card>
     </section>;
 };
-export default SalesForecast;
+export default PredictionPage;

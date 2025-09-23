@@ -1,6 +1,6 @@
 // API service for reviews functionality
 
-import { Platform, ReviewData, SuggestedComment, ReviewRequestBody } from '../types/reviews';
+import { Platform, ReviewData, SuggestedComment, ReviewRequestBody } from '../types/reviewTypes';
 
 const FETCH_REVIEWS_URL = 'https://n8n.sofiatechnology.ai/webhook/af7a38f8-ac04-4582-8fe5-a8cf318e8eb2';
 const SUGGEST_COMMENT_URL = 'https://n8n.sofiatechnology.ai/webhook/93e945b3-bc99-4765-ae45-00a33b7240d4';
@@ -57,7 +57,7 @@ class ReviewService {
   async fetchReviews(platform: Platform): Promise<ReviewData[]> {
     try {
       // Build URL with platform as query parameter
-      const url = `${FETCH_REVIEWS_URL}?platform=${encodeURIComponent(platform)}`;
+      const url = `${FETCH_REVIEWS_URL}?platform=${encodeURIComponent(platform.replace(' ', ''))}`;
       const data = await this.makeGetRequest<ReviewData[]>(url);
       return Array.isArray(data) ? data : [data];
     } catch (error) {

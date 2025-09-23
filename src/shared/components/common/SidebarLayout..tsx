@@ -20,7 +20,7 @@ const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
   { to: "/summary", label: "Sumnmary", icon:  ReceiptPoundSterling},
   { to: "/calendar", label: "Stafff Calendar", icon: CalendarDays },
-  { to: "/sales", label: "Sales Chart", icon: LineChart },
+  { to: "/prediction", label: "Prediction", icon: LineChart },
   { to: "/stock", label: "Stock Alerts", icon: AlertTriangle },
   { to: "/tables", label: "Table View", icon: TableProperties },
   { to: "/promotions", label: "Promotions", icon: Percent },
