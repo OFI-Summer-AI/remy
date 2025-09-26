@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
-  pnpm": {
+  "pnpm": {
     "onlyBuiltDependencies": [
       "@swc/core",
       "esbuild"
