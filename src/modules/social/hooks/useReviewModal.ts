@@ -34,7 +34,6 @@ export const useReviewModal = ({
   onSuggestComment,
 }: UseReviewModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [commentSuggestions, setCommentSuggestions] = useState<CommentSuggestionState>({});
 
   const generateReviewKey = useCallback((review: ReviewData, index: number): string => {
     return `${review.platform}-${review.customer_name}-${index}-${review.review_date}`;
@@ -46,8 +45,6 @@ export const useReviewModal = ({
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
-    // Clear all comment suggestions when modal closes
-    setCommentSuggestions({});
   }, []);
 
   const handleSuggestComment = useCallback(async (review: ReviewData, index: number) => {
@@ -55,59 +52,26 @@ export const useReviewModal = ({
     
     const reviewKey = generateReviewKey(review, index);
     
-    // Set loading state
-    setCommentSuggestions(prev => ({
-      ...prev,
-      [reviewKey]: {
-        ...prev[reviewKey],
-        loading: true,
-        error: undefined,
-      }
-    }));
-
     try {
       await onSuggestComment(review.review, platform, reviewKey);
     } catch (error) {
-      // Handle error in the suggestion process
-      setCommentSuggestions(prev => ({
-        ...prev,
-        [reviewKey]: {
-          ...prev[reviewKey],
-          loading: false,
-          error: error instanceof Error ? error.message : 'Failed to generate suggestion',
-        }
-      }));
+      console.error('Error suggesting comment:', error);
     }
   }, [platform, generateReviewKey, onSuggestComment]);
 
   const setSuggestionResult = useCallback((reviewKey: string, comment: string) => {
-    setCommentSuggestions(prev => ({
-      ...prev,
-      [reviewKey]: {
-        loading: false,
-        error: undefined,
-        comment,
-      }
-    }));
+    // This function is no longer needed as state is managed by parent
+    console.log('Suggestion result received:', reviewKey, comment);
   }, []);
 
   const setSuggestionError = useCallback((reviewKey: string, error: string) => {
-    setCommentSuggestions(prev => ({
-      ...prev,
-      [reviewKey]: {
-        loading: false,
-        error,
-        comment: undefined,
-      }
-    }));
+    // This function is no longer needed as state is managed by parent
+    console.error('Suggestion error received:', reviewKey, error);
   }, []);
 
   const clearCommentSuggestion = useCallback((reviewKey: string) => {
-    setCommentSuggestions(prev => {
-      const newState = { ...prev };
-      delete newState[reviewKey];
-      return newState;
-    });
+    // This will be handled by the parent component
+    console.log('Clear comment suggestion for:', reviewKey);
   }, []);
 
   const openReviewLink = useCallback((link: string) => {
@@ -129,7 +93,6 @@ export const useReviewModal = ({
 
   return {
     isOpen,
-    commentSuggestions,
     hasReviews,
     displayTitle,
     generateReviewKey,

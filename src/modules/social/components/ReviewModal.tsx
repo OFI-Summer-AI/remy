@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Star, ExternalLink, MessageSquare, Loader2, AlertCircle, X, Copy, Check } from 'lucide-react';
 import { cn } from "@/shared/lib/utils";
 import { useReviewModal } from '../hooks/useReviewModal';
-import { Platform } from '../types/reviewTypes';
+import { Platform, CommentSuggestionState } from '../types/reviewTypes';
 
 
 interface ReviewData {
@@ -21,7 +21,9 @@ interface ReviewModalProps {
   reviews: ReviewData[];
   loading: boolean;
   error: string | null;
+  commentSuggestions: CommentSuggestionState;
   onSuggestComment: (review: string, platform: string, reviewKey: string) => void;
+  onClearCommentSuggestion: (reviewKey: string) => void;
   onSuggestionResult?: (reviewKey: string, comment: string) => void;
   onSuggestionError?: (reviewKey: string, error: string) => void;
 }
@@ -41,21 +43,21 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   reviews,
   loading,
   error,
+  commentSuggestions,
   onSuggestComment,
+  onClearCommentSuggestion,
   onSuggestionResult,
   onSuggestionError,
 }) => {
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
   
   const {
-    commentSuggestions,
     hasReviews,
     displayTitle,
     generateReviewKey,
     handleSuggestComment,
     setSuggestionResult,
     setSuggestionError,
-    clearCommentSuggestion,
     openReviewLink,
     copyToClipboard,
   } = useReviewModal({
@@ -223,7 +225,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               <div className="grid gap-4">
                 {reviews.map((review, index) => {
                   const reviewKey = generateReviewKey(review, index);
-                  const suggestion = commentSuggestions[reviewKey] || {};
+                  const suggestion = commentSuggestions[reviewKey] || { loading: false, comment: null, error: null };
                   const ratingColor = getRatingColor(review.review_rate);
                   const isCopied = copiedStates[reviewKey];
 
@@ -310,7 +312,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                               Suggested Response
                             </h6>
                             <button
-                              onClick={() => clearCommentSuggestion(reviewKey)}
+                              onClick={() => onClearCommentSuggestion(reviewKey)}
                               className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded"
                               aria-label="Clear suggestion"
                             >
