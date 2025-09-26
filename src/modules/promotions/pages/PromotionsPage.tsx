@@ -10,7 +10,7 @@ const items = [
   { id: 3, name: "Veggie Lasagna", currentPrice: 11.5 },
 ];
 
-const WEBHOOK_URL = "https://n8n.sofiatechnology.ai/webhook-test/bdde9056-c5b1-481d-a68c-21a755883e05";
+const WEBHOOK_URL = "https://n8n.sofiatechnology.ai/webhook/bdde9056-c5b1-481d-a68c-21a755883e05";
 
 const PromotionsPage = () => {
   const [chatInput, setChatInput] = React.useState("");
@@ -53,11 +53,14 @@ const PromotionsPage = () => {
 
       const data = await response.json();
       
+      // Debug: Log the actual response structure
+      console.log('Webhook response:', data);
+      
       // Add assistant response to chat
       const assistantMessage = {
         id: Date.now() + 1,
         role: "assistant",
-        text: data.response || data.message || "I received your message and I'm working on a response!"
+        text: data.response || data.message || data.output || data.result || JSON.stringify(data) || "I received your message and I'm working on a response!"
       };
 
       setMessages(prev => [...prev, assistantMessage]);
