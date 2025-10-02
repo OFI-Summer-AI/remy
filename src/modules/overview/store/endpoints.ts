@@ -1,7 +1,10 @@
 
 // constants/endpoints.ts
 
-export const BASE_API_URL = 'http://localhost:8000/api/overview';
+export const BASE_API_URL =
+  import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/overview`
+    : "http://localhost:8006/api/overview";
 
 export const ENDPOINTS = {
   // KPIs

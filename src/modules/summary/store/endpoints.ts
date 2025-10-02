@@ -1,7 +1,11 @@
 
 // constants/endpoints.ts (agregar a tu archivo existente)
 
-export const BASE_API_URL = 'http://localhost:8000/api/summary';
+export const BASE_API_URL =
+  import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/summary`
+    : "http://localhost:8006/api/summary";
+
 
 export const ENDPOINTS = {
   // ... tus endpoints existentes de overview ...
