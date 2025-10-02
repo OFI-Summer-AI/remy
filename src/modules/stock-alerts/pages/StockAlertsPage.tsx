@@ -1,3 +1,5 @@
+// pages/StockAlertsPage.tsx - Usando RTK Query
+
 import React from "react";
 import {
   Card,
@@ -33,20 +35,18 @@ import {
   Edit3,
   Save,
   X,
-  Search
+  Search,
+  Loader2
 } from "lucide-react";
+import { KPIGridView } from "@/shared/components/common/KPIGridView";
+import { 
+  useGetStockKPIsQuery, 
+  useGetStockTableQuery,
+  useUpdateStockThresholdMutation,
+  type StockItem
+} from "../store/stockApi";
 
-/* -------------------- Types -------------------- */
-interface Item {
-  id: number;
-  name: string;
-  qty: number;
-  unit: string;
-  minThreshold: number;
-  supplier?: string;
-  unitPrice?: number;
-}
-
+/* -------------------- Constants -------------------- */
 interface AvailableProduct {
   id: number;
   name: string;
@@ -55,15 +55,6 @@ interface AvailableProduct {
   supplier: string;
   unit_price: number;
 }
-
-/* -------------------- Constants -------------------- */
-const INITIAL_ITEMS: Item[] = [
-  { id: 1, name: "Tomatoes", qty: 8, unit: "kg", minThreshold: 5, supplier: "Fresh Farm Co.", unitPrice: 3.50 },
-  { id: 2, name: "Mozzarella", qty: 2, unit: "kg", minThreshold: 3, supplier: "Dairy Express", unitPrice: 12.00 },
-  { id: 3, name: "Flour", qty: 25, unit: "kg", minThreshold: 10, supplier: "Mill & Co.", unitPrice: 2.20 },
-  { id: 4, name: "Olive Oil", qty: 4, unit: "L", minThreshold: 2, supplier: "Mediterranean Oil", unitPrice: 8.75 },
-  { id: 5, name: "Basil", qty: 1, unit: "kg", minThreshold: 2, supplier: "Herb Garden", unitPrice: 15.00 },
-];
 
 const AVAILABLE_PRODUCTS: AvailableProduct[] = [
   { id: 101, name: "Oregano", current_quantity: 50, units: "kg", supplier: "Herb Garden", unit_price: 18.50 },
@@ -82,36 +73,35 @@ const WEBHOOK_URL = "https://n8n.sofiatechnology.ai/webhook/1fa87292-48fa-494f-9
 
 /* -------------------- Component -------------------- */
 const StockAlertsPage: React.FC = () => {
-  const [items, setItems] = React.useState<Item[]>(INITIAL_ITEMS);
+  // RTK Query hooks
+  const { data: stockItems = [], isLoading, isError, refetch } = useGetStockTableQuery();
+  const [updateThreshold] = useUpdateStockThresholdMutation();
+  
+  // Local state
   const [query, setQuery] = React.useState("");
-  const [reorderQuantities, setReorderQuantities] = React.useState<Record<number, number>>({});
-  const [isLoading, setIsLoading] = React.useState<Record<number, boolean>>({});
-  const [editingThreshold, setEditingThreshold] = React.useState<number | null>(null);
+  const [reorderQuantities, setReorderQuantities] = React.useState<Record<string, number>>({});
+  const [isReordering, setIsReordering] = React.useState<Record<string, boolean>>({});
+  const [editingThreshold, setEditingThreshold] = React.useState<string | null>(null);
   const [newThresholdValue, setNewThresholdValue] = React.useState<string>("");
   const [showAddDialog, setShowAddDialog] = React.useState(false);
   const { toast } = useToast();
 
   const filtered = React.useMemo(
     () =>
-      items.filter((i) =>
+      stockItems.filter((i) =>
         i.name.toLowerCase().includes(query.toLowerCase())
       ),
-    [items, query]
+    [stockItems, query]
   );
 
-  const lowStockCount = React.useMemo(
-    () => items.filter(item => item.qty <= item.minThreshold).length,
-    [items]
-  );
-
-  const updateReorderQuantity = (itemId: number, delta: number) => {
+  const updateReorderQuantity = (itemId: string, delta: number) => {
     setReorderQuantities(prev => ({
       ...prev,
       [itemId]: Math.max(0, (prev[itemId] || 1) + delta)
     }));
   };
 
-  const handleReorder = async (item: Item) => {
+  const handleReorder = async (item: StockItem) => {
     const quantity = reorderQuantities[item.id] || 1;
     
     if (quantity <= 0) {
@@ -123,13 +113,13 @@ const StockAlertsPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(prev => ({ ...prev, [item.id]: true }));
+    setIsReordering(prev => ({ ...prev, [item.id]: true }));
 
     try {
       const queryParams = new URLSearchParams({
         product_name: item.name,
         quantity: quantity.toString(),
-        units: item.unit
+        units: item.unit || 'units'
       });
 
       const response = await fetch(`${WEBHOOK_URL}?${queryParams}`, {
@@ -142,13 +132,16 @@ const StockAlertsPage: React.FC = () => {
       if (response.ok) {
         toast({
           title: "Order sent successfully!",
-          description: `Requested ${quantity} ${item.unit} of ${item.name}`,
+          description: `Requested ${quantity} units of ${item.name}`,
         });
         
         setReorderQuantities(prev => ({
           ...prev,
           [item.id]: 1
         }));
+        
+        // Refetch para actualizar el estado
+        refetch();
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -160,16 +153,16 @@ const StockAlertsPage: React.FC = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(prev => ({ ...prev, [item.id]: false }));
+      setIsReordering(prev => ({ ...prev, [item.id]: false }));
     }
   };
 
-  const startEditingThreshold = (item: Item) => {
+  const startEditingThreshold = (item: StockItem) => {
     setEditingThreshold(item.id);
-    setNewThresholdValue(item.minThreshold.toString());
+    setNewThresholdValue(item.min_threshold.toString());
   };
 
-  const saveThreshold = (itemId: number) => {
+  const saveThreshold = async (itemId: string) => {
     const newValue = parseInt(newThresholdValue);
     if (isNaN(newValue) || newValue < 0) {
       toast({
@@ -180,19 +173,23 @@ const StockAlertsPage: React.FC = () => {
       return;
     }
 
-    setItems(prev => prev.map(item => 
-      item.id === itemId 
-        ? { ...item, minThreshold: newValue }
-        : item
-    ));
+    try {
+      await updateThreshold({ id: itemId, threshold: newValue }).unwrap();
+      
+      setEditingThreshold(null);
+      setNewThresholdValue("");
 
-    setEditingThreshold(null);
-    setNewThresholdValue("");
-
-    toast({
-      title: "Threshold updated",
-      description: `Minimum stock threshold updated successfully`,
-    });
+      toast({
+        title: "Threshold updated",
+        description: "Minimum stock threshold updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Update failed",
+        description: "Could not update threshold. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const cancelEditingThreshold = () => {
@@ -201,75 +198,59 @@ const StockAlertsPage: React.FC = () => {
   };
 
   const addNewItem = (product: AvailableProduct, minThreshold: number) => {
-    const id = Math.max(...items.map(i => i.id), 0) + 1;
-    const newItem: Item = {
-      id,
-      name: product.name,
-      qty: product.current_quantity,
-      unit: product.units,
-      minThreshold,
-      supplier: product.supplier,
-      unitPrice: product.unit_price
-    };
-    
-    setItems(prev => [...prev, newItem]);
+    // Aquí deberías hacer una mutation para agregar al backend
+    // Por ahora solo cerramos el diálogo
     setShowAddDialog(false);
     
     toast({
       title: "Item added",
       description: `${product.name} has been added to stock monitoring`,
     });
+    
+    refetch();
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-orange-600 mx-auto" />
+          <p className="text-muted-foreground">Loading stock data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center space-y-4">
+            <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+            <div>
+              <h3 className="font-semibold text-lg">Error loading stock data</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Could not fetch stock information. Please try again.
+              </p>
+            </div>
+            <Button onClick={() => refetch()} variant="outline">
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full">
       <div className="w-full h-full p-6">
         <div className="w-full max-w-none space-y-6">
           
-          {/* Header Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="border-0 shadow-lg bg-white/90 backdrop-blur">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-orange-100 rounded-full">
-                    <PackagePlus className="h-6 w-6 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{items.length}</p>
-                    <p className="text-sm text-gray-600">Total Items</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-white/90 backdrop-blur">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-red-100 rounded-full">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{lowStockCount}</p>
-                    <p className="text-sm text-gray-600">Low Stock Alerts</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-white/90 backdrop-blur">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-green-100 rounded-full">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{items.length - lowStockCount}</p>
-                    <p className="text-sm text-gray-600">Items in Stock</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Header Stats - Using KPIGridView */}
+          <KPIGridView queryHook={useGetStockKPIsQuery} variant="full" />
 
           {/* Main Content */}
           <Card className="border-0 shadow-xl bg-white/95 backdrop-blur flex-1">
@@ -279,7 +260,7 @@ const StockAlertsPage: React.FC = () => {
                   <PackagePlus className="h-7 w-7" />
                   Stock & Reorder Management
                 </CardTitle>
-                
+                 
                 <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 h-4 w-4" />
@@ -322,22 +303,30 @@ const StockAlertsPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((item) => (
-                      <StockRow 
-                        key={item.id} 
-                        item={item}
-                        reorderQuantity={reorderQuantities[item.id] || 1}
-                        onQuantityChange={(delta) => updateReorderQuantity(item.id, delta)}
-                        onReorder={() => handleReorder(item)}
-                        isLoading={isLoading[item.id] || false}
-                        isEditingThreshold={editingThreshold === item.id}
-                        newThresholdValue={newThresholdValue}
-                        onThresholdValueChange={setNewThresholdValue}
-                        onStartEditingThreshold={() => startEditingThreshold(item)}
-                        onSaveThreshold={() => saveThreshold(item.id)}
-                        onCancelEditingThreshold={cancelEditingThreshold}
-                      />
-                    ))}
+                    {filtered.length > 0 ? (
+                      filtered.map((item) => (
+                        <StockRow 
+                          key={item.id} 
+                          item={item}
+                          reorderQuantity={reorderQuantities[item.id] || 1}
+                          onQuantityChange={(delta) => updateReorderQuantity(item.id, delta)}
+                          onReorder={() => handleReorder(item)}
+                          isLoading={isReordering[item.id] || false}
+                          isEditingThreshold={editingThreshold === item.id}
+                          newThresholdValue={newThresholdValue}
+                          onThresholdValueChange={setNewThresholdValue}
+                          onStartEditingThreshold={() => startEditingThreshold(item)}
+                          onSaveThreshold={() => saveThreshold(item.id)}
+                          onCancelEditingThreshold={cancelEditingThreshold}
+                        />
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          No items found matching your search
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
@@ -351,7 +340,7 @@ const StockAlertsPage: React.FC = () => {
 
 /* -------------------- Subcomponent: Stock Row -------------------- */
 interface StockRowProps {
-  item: Item;
+  item: StockItem;
   reorderQuantity: number;
   onQuantityChange: (delta: number) => void;
   onReorder: () => void;
@@ -377,7 +366,8 @@ const StockRow: React.FC<StockRowProps> = ({
   onSaveThreshold,
   onCancelEditingThreshold
 }) => {
-  const isLow = item.qty <= item.minThreshold;
+  const isLow = item.current_stock <= item.min_threshold;
+  const unit = item.unit || 'units';
 
   return (
     <TableRow className={`hover:bg-orange-25 transition-colors ${isLow ? "bg-red-50 border-l-4 border-red-400" : "hover:bg-orange-50"}`}>
@@ -389,12 +379,12 @@ const StockRow: React.FC<StockRowProps> = ({
       </TableCell>
 
       <TableCell className="py-4">
-        <span className="text-sm text-gray-600">{item.supplier || "N/A"}</span>
+        <span className="text-sm text-gray-600">{item.supplier}</span>
       </TableCell>
       
       <TableCell className="py-4">
         <span className={`font-semibold ${isLow ? 'text-red-600' : 'text-gray-900'}`}>
-          {item.qty} {item.unit}
+          {item.current_stock} {unit}
         </span>
       </TableCell>
 
@@ -408,7 +398,7 @@ const StockRow: React.FC<StockRowProps> = ({
               type="number"
               min="0"
             />
-            <span className="text-sm text-gray-500">{item.unit}</span>
+            <span className="text-sm text-gray-500">{unit}</span>
             <Button
               size="sm"
               variant="ghost"
@@ -429,7 +419,7 @@ const StockRow: React.FC<StockRowProps> = ({
         ) : (
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-700">
-              {item.minThreshold} {item.unit}
+              {item.min_threshold} {unit}
             </span>
             <Button
               size="sm"
@@ -445,7 +435,7 @@ const StockRow: React.FC<StockRowProps> = ({
 
       <TableCell className="py-4">
         <span className="font-semibold text-green-600">
-          ${item.unitPrice?.toFixed(2) || "N/A"}
+          ${item.unit_price.toFixed(2)}
         </span>
       </TableCell>
       
@@ -461,7 +451,7 @@ const StockRow: React.FC<StockRowProps> = ({
             <Minus className="h-3 w-3" />
           </Button>
           <span className="min-w-[4rem] text-center font-semibold text-gray-900">
-            {reorderQuantity} {item.unit}
+            {reorderQuantity} {unit}
           </span>
           <Button
             variant="outline"
@@ -476,17 +466,15 @@ const StockRow: React.FC<StockRowProps> = ({
       </TableCell>
       
       <TableCell className="py-4">
-        {isLow ? (
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-            <span className="text-red-600 font-semibold">Low Stock</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            <span className="text-green-600 font-medium">In Stock</span>
-          </div>
-        )}
+        <span className={`text-sm font-medium ${
+          item.status === "In Stock" 
+            ? "text-green-600" 
+            : item.status.includes("Request") 
+            ? "text-orange-600" 
+            : "text-yellow-600"
+        }`}>
+          {item.status}
+        </span>
       </TableCell>
       
       <TableCell className="text-right py-4">
@@ -500,7 +488,14 @@ const StockRow: React.FC<StockRowProps> = ({
           }`}
           size="sm"
         >
-          {isLoading ? "Ordering..." : "Reorder"}
+          {isLoading ? (
+            <>
+              <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+              Ordering...
+            </>
+          ) : (
+            "Reorder"
+          )}
         </Button>
       </TableCell>
     </TableRow>
@@ -552,7 +547,6 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({ onAdd }) => {
       </DialogHeader>
       
       <div className="space-y-6 pt-4">
-        {/* Search Products */}
         <div className="space-y-3">
           <Label className="text-base font-semibold">Search Products</Label>
           <div className="relative">
@@ -566,7 +560,6 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({ onAdd }) => {
           </div>
         </div>
 
-        {/* Product List */}
         <div className="space-y-3">
           <Label className="text-base font-semibold">Available Products</Label>
           <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg">
@@ -613,7 +606,6 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({ onAdd }) => {
           </div>
         </div>
 
-        {/* Selected Product Details */}
         {selectedProduct && (
           <Card className="bg-orange-50 border-orange-200">
             <CardContent className="p-4">
@@ -640,7 +632,6 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({ onAdd }) => {
           </Card>
         )}
 
-        {/* Minimum Threshold */}
         {selectedProduct && (
           <div className="space-y-2">
             <Label htmlFor="min-threshold" className="text-base font-semibold">
@@ -659,7 +650,6 @@ const AddItemDialog: React.FC<AddItemDialogProps> = ({ onAdd }) => {
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button 
             variant="outline"

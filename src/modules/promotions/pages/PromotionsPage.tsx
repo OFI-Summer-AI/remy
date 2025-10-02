@@ -1,3 +1,5 @@
+// pages/PromotionsPage.tsx - Usando RTK Query
+
 import React from "react";
 import {
   Card,
@@ -31,9 +33,17 @@ import {
   Search,
   Tag,
   Trash2,
-  PackagePlus
+  Loader2,
+  AlertTriangle
 } from "lucide-react";
-import { KPICard } from "@/shared/components/common/KPICard";
+import { KPIGridView } from "@/shared/components/common/KPIGridView";
+import { 
+  useGetPromotionsKPIsQuery, 
+  useGetPromotionsTableQuery,
+  useCreatePromotionMutation,
+  useDeletePromotionMutation,
+  type PromotionItem
+} from "../store/promotionsApi";
 
 /* -------------------- Types -------------------- */
 interface MenuItem {
@@ -43,16 +53,18 @@ interface MenuItem {
   price: number;
 }
 
-interface Promotion {
-  id: number;
-  itemId: number;
-  itemName: string;
-  originalPrice: number;
-  discount: number;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'scheduled' | 'expired';
-}
+// Helper function to calculate status
+const calculateStatus = (startDate: string, endDate: string): 'active' | 'scheduled' | 'expired' => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  if (startDate <= today && endDate >= today) {
+    return 'active';
+  } else if (startDate > today) {
+    return 'scheduled';
+  } else {
+    return 'expired';
+  }
+};
 
 /* -------------------- Constants -------------------- */
 const MENU_ITEMS: MenuItem[] = [
@@ -68,75 +80,19 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 10, name: "Pepperoni Pizza", category: "Pizza", price: 13.5 }
 ];
 
-const INITIAL_PROMOTIONS: Promotion[] = [
-  {
-    id: 1,
-    itemId: 1,
-    itemName: "Pumpkin Soup",
-    originalPrice: 6.5,
-    discount: 15,
-    startDate: "2025-09-25",
-    endDate: "2025-10-05",
-    status: 'active'
-  },
-  {
-    id: 2,
-    itemId: 2,
-    itemName: "Quinoa Salad",
-    originalPrice: 9.0,
-    discount: 20,
-    startDate: "2025-09-28",
-    endDate: "2025-10-10",
-    status: 'active'
-  },
-  {
-    id: 3,
-    itemId: 5,
-    itemName: "Truffle Mushroom Pizza",
-    originalPrice: 15.5,
-    discount: 10,
-    startDate: "2025-10-01",
-    endDate: "2025-10-15",
-    status: 'scheduled'
-  }
-];
-
-/* -------------------- Stats Card Component -------------------- */
-interface StatsCardProps {
-  icon: React.ElementType;
-  iconColor: string;
-  iconBg: string;
-  value: number;
-  label: string;
-}
-
-const StatsCard: React.FC<StatsCardProps> = ({ icon: Icon, iconColor, iconBg, value, label }) => {
-  return (
-    <Card className="border-0 shadow-lg bg-white/90 backdrop-blur">
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-4">
-          <div className={`p-3 ${iconBg} rounded-full`}>
-            <Icon className={`h-6 w-6 ${iconColor}`} />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-sm text-gray-600">{label}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 /* -------------------- Promotion Row Component -------------------- */
 interface PromotionRowProps {
-  promotion: Promotion;
+  promotion: PromotionItem;
   onDelete: () => void;
+  isDeleting: boolean;
 }
 
-const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete }) => {
-  const finalPrice = promotion.originalPrice * (1 - promotion.discount / 100);
-  const savings = promotion.originalPrice - finalPrice;
+const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete, isDeleting }) => {
+  const discountNum = parseInt(promotion.discount.replace('%', ''));
+  const originalPrice = promotion.original_price || 0;
+  const finalPrice = originalPrice * (1 - discountNum / 100);
+  const savings = originalPrice - finalPrice;
+  const status = calculateStatus(promotion.start_date, promotion.end_date);
 
   const statusConfig = {
     active: {
@@ -159,21 +115,21 @@ const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete }) => {
     }
   };
 
-  const status = statusConfig[promotion.status];
-  const StatusIcon = status.icon;
+  const statusInfo = statusConfig[status];
+  const StatusIcon = statusInfo.icon;
 
   return (
-    <TableRow className={`hover:bg-orange-50 transition-colors ${promotion.status === 'active' ? 'bg-green-50/30 border-l-4 border-green-400' : ''}`}>
+    <TableRow className={`hover:bg-orange-50 transition-colors ${status === 'active' ? 'bg-green-50/30 border-l-4 border-green-400' : ''}`}>
       <TableCell className="font-medium py-4">
         <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${status.dotColor}`} />
-          <span className="text-gray-900 font-semibold">{promotion.itemName}</span>
+          <div className={`w-3 h-3 rounded-full ${statusInfo.dotColor}`} />
+          <span className="text-gray-900 font-semibold">{promotion.item}</span>
         </div>
       </TableCell>
 
       <TableCell className="py-4">
         <span className="text-gray-900 font-medium">
-          €{promotion.originalPrice.toFixed(2)}
+          €{originalPrice.toFixed(2)}
         </span>
       </TableCell>
       
@@ -181,7 +137,7 @@ const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete }) => {
         <div className="flex items-center gap-2">
           <Percent className="h-4 w-4 text-orange-500" />
           <span className="font-semibold text-orange-600">
-            {promotion.discount}% OFF
+            {promotion.discount} OFF
           </span>
         </div>
       </TableCell>
@@ -201,7 +157,7 @@ const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete }) => {
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-600">
-            {new Date(promotion.startDate).toLocaleDateString('en-US', {
+            {new Date(promotion.start_date).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric'
@@ -214,7 +170,7 @@ const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete }) => {
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-600">
-            {new Date(promotion.endDate).toLocaleDateString('en-US', {
+            {new Date(promotion.end_date).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric'
@@ -225,9 +181,9 @@ const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete }) => {
       
       <TableCell className="py-4">
         <div className="flex items-center gap-2">
-          <StatusIcon className={`h-4 w-4 ${status.color}`} />
-          <span className={`${status.color} font-semibold`}>
-            {status.label}
+          <StatusIcon className={`h-4 w-4 ${statusInfo.color}`} />
+          <span className={`${statusInfo.color} font-semibold`}>
+            {statusInfo.label}
           </span>
         </div>
       </TableCell>
@@ -235,12 +191,22 @@ const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete }) => {
       <TableCell className="text-right py-4">
         <Button
           onClick={onDelete}
+          disabled={isDeleting}
           variant="outline"
           size="sm"
           className="text-red-600 hover:bg-red-50 hover:border-red-300"
         >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete
+          {isDeleting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Deleting...
+            </>
+          ) : (
+            <>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </>
+          )}
         </Button>
       </TableCell>
     </TableRow>
@@ -321,9 +287,10 @@ const SelectedItemPreview: React.FC<SelectedItemPreviewProps> = ({ item, discoun
 /* -------------------- Add Promotion Dialog Component -------------------- */
 interface AddPromotionDialogProps {
   onAdd: (menuItem: MenuItem, discount: number, startDate: string, endDate: string) => void;
+  isCreating: boolean;
 }
 
-const AddPromotionDialog: React.FC<AddPromotionDialogProps> = ({ onAdd }) => {
+const AddPromotionDialog: React.FC<AddPromotionDialogProps> = ({ onAdd, isCreating }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedItem, setSelectedItem] = React.useState<MenuItem | null>(null);
   const [discount, setDiscount] = React.useState("");
@@ -358,11 +325,6 @@ const AddPromotionDialog: React.FC<AddPromotionDialogProps> = ({ onAdd }) => {
     }
 
     onAdd(selectedItem, discountNum, startDate, endDate);
-    setSelectedItem(null);
-    setDiscount("");
-    setStartDate("");
-    setEndDate("");
-    setSearchQuery("");
   };
 
   const handleCancel = () => {
@@ -489,22 +451,32 @@ const AddPromotionDialog: React.FC<AddPromotionDialogProps> = ({ onAdd }) => {
         </div>
       </div>
 
-      {/* Action Buttons - Fixed at bottom */}
+      {/* Action Buttons */}
       <div className="flex justify-end gap-3 pt-4 border-t mt-4">
         <Button 
           variant="outline"
           onClick={handleCancel}
+          disabled={isCreating}
           className="border-gray-300 text-gray-600 hover:bg-gray-50"
         >
           Cancel
         </Button>
         <Button 
           onClick={handleSubmit}
-          disabled={!selectedItem || !discount || !startDate || !endDate}
+          disabled={!selectedItem || !discount || !startDate || !endDate || isCreating}
           className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Create Promotion
+          {isCreating ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Promotion
+            </>
+          )}
         </Button>
       </div>
     </>
@@ -513,98 +485,113 @@ const AddPromotionDialog: React.FC<AddPromotionDialogProps> = ({ onAdd }) => {
 
 /* -------------------- Main Component -------------------- */
 const PromotionsPage: React.FC = () => {
-  const [promotions, setPromotions] = React.useState<Promotion[]>(INITIAL_PROMOTIONS);
+  // RTK Query hooks
+  const { data: promotions = [], isLoading, isError, refetch } = useGetPromotionsTableQuery();
+  const [createPromotion, { isLoading: isCreating }] = useCreatePromotionMutation();
+  const [deletePromotion, { isLoading: isDeletingMap }] = useDeletePromotionMutation();
+
+  // Local state
   const [query, setQuery] = React.useState("");
   const [showAddDialog, setShowAddDialog] = React.useState(false);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const { toast } = useToast();
 
   const filtered = React.useMemo(
     () =>
       promotions.filter((promo) =>
-        promo.itemName.toLowerCase().includes(query.toLowerCase())
+        promo.item.toLowerCase().includes(query.toLowerCase())
       ),
     [promotions, query]
   );
 
-  const activeCount = React.useMemo(
-    () => promotions.filter(p => p.status === 'active').length,
-    [promotions]
-  );
-
-  const scheduledCount = React.useMemo(
-    () => promotions.filter(p => p.status === 'scheduled').length,
-    [promotions]
-  );
-
-  const addPromotion = (menuItem: MenuItem, discount: number, startDate: string, endDate: string) => {
-    const id = Math.max(...promotions.map(p => p.id), 0) + 1;
-    const today = new Date().toISOString().split('T')[0];
-    
-    let status: 'active' | 'scheduled' | 'expired' = 'scheduled';
-    if (startDate <= today && endDate >= today) {
-      status = 'active';
-    } else if (endDate < today) {
-      status = 'expired';
+  const addPromotion = async (menuItem: MenuItem, discount: number, startDate: string, endDate: string) => {
+    try {
+      await createPromotion({
+        item_id: menuItem.id,
+        item_name: menuItem.name,
+        original_price: menuItem.price,
+        discount,
+        start_date: startDate,
+        end_date: endDate,
+      }).unwrap();
+      
+      setShowAddDialog(false);
+      
+      const status = calculateStatus(startDate, endDate);
+      toast({
+        title: "Promotion created",
+        description: `${discount}% off ${menuItem.name} has been ${status === 'active' ? 'activated' : 'scheduled'}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to create promotion",
+        description: "Could not create the promotion. Please try again.",
+        variant: "destructive",
+      });
     }
-
-    const newPromotion: Promotion = {
-      id,
-      itemId: menuItem.id,
-      itemName: menuItem.name,
-      originalPrice: menuItem.price,
-      discount,
-      startDate,
-      endDate,
-      status
-    };
-    
-    setPromotions(prev => [...prev, newPromotion]);
-    setShowAddDialog(false);
-    
-    toast({
-      title: "Promotion created",
-      description: `${discount}% off ${menuItem.name} has been ${status === 'active' ? 'activated' : 'scheduled'}`,
-    });
   };
 
-  const deletePromotion = (id: number) => {
-    const promo = promotions.find(p => p.id === id);
-    setPromotions(prev => prev.filter(p => p.id !== id));
-    
-    toast({
-      title: "Promotion deleted",
-      description: `Promotion for ${promo?.itemName} has been removed`,
-    });
+  const handleDeletePromotion = async (id: string, itemName: string) => {
+    setDeletingId(id);
+    try {
+      await deletePromotion(id).unwrap();
+      
+      toast({
+        title: "Promotion deleted",
+        description: `Promotion for ${itemName} has been removed`,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete promotion",
+        description: "Could not delete the promotion. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingId(null);
+    }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-orange-600 mx-auto" />
+          <p className="text-muted-foreground">Loading promotions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center space-y-4">
+            <AlertTriangle className="h-12 w-12 text-destructive mx-auto" />
+            <div>
+              <h3 className="font-semibold text-lg">Error loading promotions</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                Could not fetch promotions data. Please try again.
+              </p>
+            </div>
+            <Button onClick={() => refetch()} variant="outline">
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full">
       <div className="w-full h-full p-6">
         <div className="w-full max-w-none space-y-6">
           
-          {/* Header Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <KPICard
-              icon={Tag}
-              value={promotions.length.toString()}
-              title="Total Promotions"
-              delta="-4%"
-            />
-            <StatsCard
-              icon={CheckCircle}
-              iconColor="text-green-600"
-              iconBg="bg-green-100"
-              value={activeCount}
-              label="Active Promotions"
-            />
-            <StatsCard
-              icon={Clock}
-              iconColor="text-blue-600"
-              iconBg="bg-blue-100"
-              value={scheduledCount}
-              label="Scheduled Promotions"
-            />
-          </div>
+          {/* Header Stats - Using KPIGridView */}
+          <KPIGridView queryHook={useGetPromotionsKPIsQuery} variant="full" />
 
           {/* Main Content */}
           <Card className="border-0 shadow-xl bg-white/95 backdrop-blur flex-1">
@@ -634,7 +621,10 @@ const PromotionsPage: React.FC = () => {
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl">
-                      <AddPromotionDialog onAdd={addPromotion} />
+                      <AddPromotionDialog 
+                        onAdd={addPromotion} 
+                        isCreating={isCreating}
+                      />
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -657,13 +647,22 @@ const PromotionsPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((promo) => (
-                      <PromotionRow 
-                        key={promo.id} 
-                        promotion={promo}
-                        onDelete={() => deletePromotion(promo.id)}
-                      />
-                    ))}
+                    {filtered.length > 0 ? (
+                      filtered.map((promo) => (
+                        <PromotionRow 
+                          key={promo.id} 
+                          promotion={promo}
+                          onDelete={() => handleDeletePromotion(promo.id, promo.item)}
+                          isDeleting={deletingId === promo.id}
+                        />
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          No promotions found matching your search
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
