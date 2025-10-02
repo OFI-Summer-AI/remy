@@ -9,7 +9,7 @@ import { ENDPOINTS } from './endpoints';
 export interface PromotionItem {
   id: string;
   item: string;
-  discount: string; // "15%"
+  discount: number; // "15%"
   start_date: string;
   end_date: string;
   original_price?: number; // Opcional si el backend lo incluye
