@@ -88,7 +88,7 @@ interface PromotionRowProps {
 }
 
 const PromotionRow: React.FC<PromotionRowProps> = ({ promotion, onDelete, isDeleting }) => {
-  const discountNum = parseInt(promotion.discount.replace('%', ''));
+  const discountNum = promotion.discount;
   const originalPrice = promotion.original_price || 0;
   const finalPrice = originalPrice * (1 - discountNum / 100);
   const savings = originalPrice - finalPrice;
