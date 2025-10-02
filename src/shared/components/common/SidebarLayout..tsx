@@ -18,7 +18,7 @@ import { cn } from "@/shared/lib/utils";
 
 const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
-  { to: "/summary", label: "Sumnmary", icon:  ReceiptPoundSterling},
+  { to: "/summary", label: "Summary", icon:  ReceiptPoundSterling},
   { to: "/calendar", label: "Stafff Calendar", icon: CalendarDays },
   { to: "/prediction", label: "Prediction", icon: LineChart },
   { to: "/stock", label: "Stock Alerts", icon: AlertTriangle },

@@ -33,6 +33,7 @@ import {
   Trash2,
   PackagePlus
 } from "lucide-react";
+import { KPICard } from "@/shared/components/common/KPICard";
 
 /* -------------------- Types -------------------- */
 interface MenuItem {
@@ -583,12 +584,11 @@ const PromotionsPage: React.FC = () => {
           
           {/* Header Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatsCard
+            <KPICard
               icon={Tag}
-              iconColor="text-orange-600"
-              iconBg="bg-orange-100"
-              value={promotions.length}
-              label="Total Promotions"
+              value={promotions.length.toString()}
+              title="Total Promotions"
+              delta="-4%"
             />
             <StatsCard
               icon={CheckCircle}

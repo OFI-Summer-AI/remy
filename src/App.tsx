@@ -14,6 +14,8 @@ import TableAllocationPage from "./modules/table-allocation/pages/TableAllocatio
 import PromotionsPage from "./modules/promotions/pages/PromotionsPage";
 import SocialPage from "./modules/social/pages/SocialPage";
 import POSDashboard from "./modules/summary/pages/SummaryPage";
+import { Provider } from "react-redux";
+import { store } from "./shared/store/store";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <Provider store={store}>
       <BrowserRouter>
         <Routes>
           <Route element={<SidebarLayout />}>
@@ -41,6 +44,7 @@ const App = () => (
           </Route>
         </Routes>
       </BrowserRouter>
+      </Provider>
     </TooltipProvider>
   </QueryClientProvider>
 );
