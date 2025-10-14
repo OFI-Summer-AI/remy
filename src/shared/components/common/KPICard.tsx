@@ -17,7 +17,7 @@ export function KPICard({ kpi, variant = "full" }: KPICardProps) {
     return (
       <div
         key={kpi.id}
-        className="rounded-xl border bg-card p-3 hover:bg-accent/50 transition-colors"
+        className="rounded-xl border bg-surface p-3 hover:bg-accent/50 transition-colors"
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -52,7 +52,7 @@ export function KPICard({ kpi, variant = "full" }: KPICardProps) {
   return (
     <div
       key={kpi.id}
-      className="rounded-xl border bg-card p-6 hover:bg-accent/50 transition-colors"
+      className="rounded-xl border bg-surface p-6 hover:bg-accent/50 transition-colors"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">

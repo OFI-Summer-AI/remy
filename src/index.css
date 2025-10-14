@@ -1,109 +1,177 @@
 /** @import must precede all other statements */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Pathway+Gothic+One&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /**
-   * Tailwind CSS theme
-   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
-   * A different format will require also updating the theme in tailwind.config.ts.
-  */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 22 84% 8%;
+    /* Font families */
+    --font-text: "Poppins", sans-serif;
+    --font-title: "Pathway Gothic One", sans-serif;
 
-    --card: 0 0% 100%;
-    --card-foreground: 22 84% 8%;
+    /* Core colors */
+    --primary: #fbbf24;
+    --on-primary: #fdfdfd;
+    --primary-container: #e6d4a7;
+    --on-primary-container: #332907;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 22 84% 8%;
+    --secondary: #0e7490;
+    --on-secondary: #fdfdfd;
+    --secondary-container: #a4d8e6;
+    --on-secondary-container: #052933;
 
-    --primary: 24 94% 50%;
-    --primary-foreground: 0 0% 100%;
+    --tertiary: #006b5e;
+    --on-tertiary: #fdfdfd;
+    --tertiary-container: #9de6dd;
+    --on-tertiary-container: #00332d;
 
-    --secondary: 24 100% 97%;
-    --secondary-foreground: 24 84% 20%;
+    --success: #4ac087;
+    --on-success: #ffffff;
+    --success-container: #a9e6c0;
+    --on-success-container: #008955;
 
-    --muted: 24 30% 95%;
-    --muted-foreground: 24 15% 40%;
+    --error: #b3261e;
+    --on-error: #ffffff;
+    --error-container: #e6aca9;
+    --on-error-container: #330b09;
 
-    --accent: 24 100% 90%;
-    --accent-foreground: 24 84% 20%;
+    /* Background & surface */
+    --background: #fcfcfb;
+    --on-background: #333231;
 
-    --destructive: 2 84% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --surface: #fcfcfb;
+    --on-surface: #333231;
+    --surface-variant: #e6e3d9;
+    --on-surface-variant: #666254;
 
-    --border: 24 20% 88%;
-    --input: 24 20% 88%;
-    --ring: 24 94% 50%;
+    /* Elevation levels */
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f5f5f4;
+    --surface-container: #e7e5e4;
+    --surface-container-high: #d6d3d1;
+    --surface-container-highest: #a8a29e;
 
-    --radius: 0.75rem;
+    /* Outline / shadows */
+    --outline: #807667;
+    --outline-variant: #d1c5b4;
+    --shadow: rgb(0 0 0);
+    --scrim: rgb(0 0 0);
 
-    --sidebar-background: 0 0% 99%;
+    /* Inverse colors */
+    --inverse-surface: rgb(52 48 39);
+    --inverse-on-surface: rgb(249 240 226);
+    --inverse-primary: rgb(237 192 108);
 
-    --sidebar-foreground: 22 50% 14%;
+    /* Radii */
+    --radius: 0.625rem;
 
-    --sidebar-primary: 24 94% 50%;
+    /* Charts */
+    --chart-1: #fbbf24; /* color primario */
+    --chart-2: #fccc4b;
+    --chart-3: #fcd472;
+    --chart-4: #fde099;
+    --chart-5: #feebb9;
+    --chart-6: #fef3cf;
+    --chart-7: #fef7dc;
+    --chart-8: #fff8e6;
+    --chart-9: #fff9ed;
+    --chart-10: #fffdf8; /* casi blanco */
 
-    --sidebar-primary-foreground: 0 0% 100%;
-
-    --sidebar-accent: 24 100% 96%;
-
-    --sidebar-accent-foreground: 22 80% 20%;
-
-    --sidebar-border: 24 18% 90%;
-
-    --sidebar-ring: 24 94% 50%;
+    /* Fixed surfaces */
+    --fixed-surface: rgb(22 19 11);
   }
 
   .dark {
-    --background: 24 24% 6%;
-    --foreground: 24 10% 96%;
+    --primary: #e6cd8d;
+    --on-primary: #4c3a0b;
+    --primary-container: #664e0e;
+    --on-primary-container: #e6d4a7;
 
-    --card: 24 24% 8%;
-    --card-foreground: 24 10% 96%;
+    --secondary: #89d2e6;
+    --on-secondary: #083e4c;
+    --secondary-container: #0a5366;
+    --on-secondary-container: #a4d8e6;
 
-    --popover: 24 24% 8%;
-    --popover-foreground: 24 10% 96%;
+    --tertiary: #7fe6d9;
+    --on-tertiary: #004c43;
+    --tertiary-container: #00665a;
+    --on-tertiary-container: #9de6dd;
 
-    --primary: 24 94% 52%;
-    --primary-foreground: 0 0% 100%;
+    --success: #8fe6b0;
+    --on-success: #0c4c25;
+    --success-container: #106631;
+    --on-success-container: #a9e6c0;
 
-    --secondary: 24 22% 16%;
-    --secondary-foreground: 24 10% 96%;
+    --error: #e69490;
+    --on-error: #4c100d;
+    --error-container: #661511;
+    --on-error-container: #e6aca9;
 
-    --muted: 24 22% 16%;
-    --muted-foreground: 24 12% 70%;
+    --background: #333231;
+    --on-background: #e6e5e2;
 
-    --accent: 24 40% 20%;
-    --accent-foreground: 24 10% 96%;
+    --surface: rgb(32 29 22);
+    --on-surface: #e6e5e2;
+    --surface-variant: #666154;
+    --on-surface-variant: #e6e1d4;
 
-    --destructive: 2 74% 36%;
-    --destructive-foreground: 0 0% 100%;
+    --outline: #b3ad9f;
+    --outline-variant: rgb(78 70 57);
 
-    --border: 24 20% 20%;
-    --input: 24 20% 20%;
-    --ring: 24 94% 52%;
-    --sidebar-background: 24 22% 10%;
-    --sidebar-foreground: 24 10% 96%;
-    --sidebar-primary: 24 94% 52%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 24 22% 16%;
-    --sidebar-accent-foreground: 24 10% 96%;
-    --sidebar-border: 24 20% 20%;
-    --sidebar-ring: 24 94% 52%;
+    --inverse-surface: rgb(234 225 212);
+    --inverse-on-surface: rgb(52 48 39);
+    --inverse-primary: rgb(122 89 12);
+
+    --fixed-surface: rgb(22 19 11);
+
+    /* Elevation levels */
+    --surface-container-lowest: #110e07;
+    --surface-container-low: rgb(31 27 19);
+    --surface-container: #231f17;
+    --surface-container-high: rgb(46 42 33);
+    --surface-container-highest: rgb(57 52 43);
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-[var(--outline)];
+    box-sizing: border-box;
   }
 
+  html,
   body {
-    @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: var(--font-text);
+    background-color: var(--background);
+    color: var(--on-background);
+    color-scheme: light dark;
   }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
+/* Para Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--outline-variant) transparent;
 }

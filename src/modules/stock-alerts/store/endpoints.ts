@@ -10,5 +10,5 @@ export const ENDPOINTS = {
   
   // Stock Endpoints
   STOCK_KPIS: `${BASE_API_URL}/kpi/`,
-  STOCK_TABLE: `${BASE_API_URL}/stock/`,
+  STOCK_TABLE: `${BASE_API_URL}/`,
 } as const;

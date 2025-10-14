@@ -72,7 +72,7 @@ export default function POSDashboard() {
           )}
           renderValue={(item) => (
             <span className={cn("text-xs", item.change > 0 ? "text-green-600" : "text-red-600")}>
-              {item.change > 0 ? '+' : ''}{item.change}%
+              {item.title > 0 ? '+' : ''}{item.title}%
             </span>
           )}
         />

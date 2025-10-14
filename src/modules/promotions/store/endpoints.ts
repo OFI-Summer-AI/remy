@@ -11,5 +11,5 @@ export const ENDPOINTS = {
   
   // Promotions Endpoints
   PROMOTIONS_KPIS: `${BASE_API_URL}/kpi/`,
-  PROMOTIONS_TABLE: `${BASE_API_URL}/promotions/`,
+  PROMOTIONS_TABLE: `${BASE_API_URL}/`,
 } as const;
