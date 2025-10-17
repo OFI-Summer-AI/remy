@@ -12,7 +12,8 @@ import {
   X,
   UtensilsCrossed,
   Search,
-  ReceiptPoundSterling
+  ReceiptPoundSterling,
+  Star
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
@@ -25,6 +26,7 @@ const navItems = [
   { to: "/tables", label: "Table View", icon: TableProperties },
   { to: "/promotions", label: "Promotions", icon: Percent },
   { to: "/social", label: "Reviews and Social", icon: MessageSquare },
+  { to: "/review", label: "Review Form", icon: Star },
 ] as const;
 
 export default function SidebarLayout() {

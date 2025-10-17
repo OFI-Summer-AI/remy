@@ -183,7 +183,7 @@ const DataTable = ({
                             className="flex items-center gap-2 text-primary hover:text-red-400"
                           >
                             <Phone className="w-4 h-4" />
-                            Add Call Log
+                            Request to Provider
                           </DropdownMenuItem>
                         )}
                         {onSuggestions && (

@@ -8,6 +8,7 @@ import {
   Clock, Hash, Zap, Award, AlertCircle, CheckCircle, XCircle,
   Brain, Activity, PieChart, LineChart
 } from "lucide-react";
+import AnalyticsPage from "../analytics/pages/AnalyticsPage";
 
 // Mock AI Recommendations
 const aiRecommendations = [
@@ -641,47 +642,7 @@ const SocialAnalyticsApp = () => {
 
         {/* ANALYTICS TAB */}
         <TabsContent value="analytics" className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-primary">Competitor Analysis</h2>
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  {competitors.map((comp, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between p-4 rounded-lg border-2 ${
-                        comp.name === "Your Restaurant"
-                          ? "border-primary bg-blue-50"
-                          : "border-gray-200"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="font-semibold">{comp.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="flex items-center gap-1">
-                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                              <span className="text-xs">{comp.rating}</span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              {comp.reviews} reviews
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{comp.followers}</p>
-                        <p className="text-xs text-muted-foreground">{comp.engagement} eng.</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <AnalyticsPage />
 
           {/* Growth Trends */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

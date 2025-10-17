@@ -16,6 +16,7 @@ import SocialPage from "./modules/social/pages/SocialPage";
 import POSDashboard from "./modules/summary/pages/SummaryPage";
 import { Provider } from "react-redux";
 import { store } from "./shared/store/store";
+import ReviewAnalyzer from "./modules/review-page/pages/ReviewPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/promotions" element={<PromotionsPage />} />
             <Route path="/social" element={<SocialPage />} />
             <Route path="/summary" element={<POSDashboard />} />
+            <Route path="/review" element={<ReviewAnalyzer />} />
 
             <Route path="/login" element={<Login />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

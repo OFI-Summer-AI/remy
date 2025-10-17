@@ -62,3 +62,42 @@ export interface QueryResult<T> {
 export type QueryHook<TData, TParams = void> = (
   params?: TParams
 ) => QueryResult<TData>;
+
+// shared/types.ts - Agregar estos tipos
+
+export interface FilterOption {
+  label: string;
+  id: string;
+}
+
+export type FilterOptionsData = FilterOption[];
+
+export interface FilterableChartQueryHook {
+  // Query para obtener las opciones de filtro (inicialización)
+  useOptionsQuery: () => {
+    data: FilterOptionsData | undefined;
+    isLoading: boolean;
+    isError: boolean;
+    error: any;
+  };
+  
+  // Query para obtener los datos del gráfico (filtrado)
+  useDataQuery: (id: string | null) => {
+    data: ChartData | undefined;
+    isLoading: boolean;
+    isError: boolean;
+    error: any;
+  };
+}
+
+export interface FilterableViewState<T> {
+  data: T | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: string | null;
+  hasNoData: boolean;
+  // Estados específicos del filtro
+  filterOptions: FilterOption[] | null;
+  selectedFilterId: string | null;
+  isInitialState: boolean;
+}
